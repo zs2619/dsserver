@@ -1,0 +1,20 @@
+// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
+{
+	"name": "dsservices",
+	"service": "dsservices",
+	"dockerComposeFile": "docker-compose.extend.yml",
+	"workspaceFolder": "/workspace",
+	"extensions": [
+		"ms-azuretools.vscode-docker",
+		"golang.go",
+		"zxh404.vscode-proto3"
+	],
+	"remoteEnv": {
+		"PATH": "${containerEnv:PATH}:/workspace/tool/",
+		"DS_CONFIGPATH": "/workspace",
+		"DS_MONGOURI": "mongodb://172.17.0.1:27017",
+		"DS_MONGODBNAME": "mongotest",
+		"DS_REDISURI": "172.17.0.1:7001,172.17.0.1:7002"
+	},
+	"shutdownAction": "none"
+}

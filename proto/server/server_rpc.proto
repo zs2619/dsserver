@@ -1,0 +1,86 @@
+syntax = "proto3";
+package pb;
+option go_package = ".;pb";
+
+message RpcHeader{
+	enum RoomErrEnum {
+		OK            =0;
+		ReqParamError =1;
+	}
+	RoomErrEnum  ret   = 1;
+	string       errmsg= 2;
+}
+
+message RpcCreateRealmReq{
+	string    realmCfgID = 1;  //
+	string    teamID     = 2;
+}
+message RpcCreateRealmResp{
+	RpcHeader header   =1;
+}
+
+message RpcJoinRealmReq{
+	string    realmID = 1;  //
+}
+message RpcJoinRealmResp{
+	RpcHeader header   =1;
+}
+
+message RpcQuickJoinRealmReq{
+	string    realmCfgID = 1;  //
+	string    teamID     = 2;
+}
+message RpcQuickJoinRealmResp{
+	RpcHeader header   =1;
+	bool      pending  =2; //true 正在创建
+	string    teamID   =3;
+	string    dsAddr   =4;
+	string    realmCfgID = 5;  //
+}
+
+message RpcQueryRealmListRealmReq{
+}
+message RpcQueryRealmListRealmResp{
+	RpcHeader header   =1;
+}
+
+message NotifyJoinRealmReq{
+	string    teamID   =2;
+}
+message NotifyJoinRealmResp{
+	RpcHeader header     =1;
+	string    teamID     =2;
+	string    realmCfgID =3;  //
+	string    dsAddr     =4;
+}
+
+service GameDscRealm {
+  rpc CreateRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
+  rpc JoinRealm (RpcJoinRealmReq) returns (RpcJoinRealmResp) {}
+  rpc QuickJoinRealm (RpcQuickJoinRealmReq) returns (RpcQuickJoinRealmResp) {}
+  rpc QueryRealmList (RpcQueryRealmListRealmReq) returns (RpcQueryRealmListRealmResp) {}
+  rpc NotifyJoinRealm(stream NotifyJoinRealmReq)returns(stream NotifyJoinRealmResp){}
+}
+
+message RpcCreateRealmResult{
+	string   dsID         = 1;
+	string   teamID       = 2;
+	string   realmCfgID   = 3;  //
+	string   dsAddr       = 4;
+}
+message RpcCreateRealmInfo{
+	string    dsID       = 1;
+	string    teamID     = 2;
+	string    realmCfgID = 3;  //
+}
+
+message RpcJoinRealmResult{
+	string    teamID = 1;  //
+}
+message RpcJoinRealmInfo{
+}
+
+service DsaDscARealm {
+  rpc WaitCreateRealm (stream RpcCreateRealmResult) returns (stream RpcCreateRealmInfo) {}
+  rpc WaitJoinRealm (stream RpcJoinRealmResult) returns (stream RpcJoinRealmInfo) {}
+}

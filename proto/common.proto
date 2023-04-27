@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pb;
+option go_package = ".;pb";
+
+message MsgHeader {
+	int32	       version     =1;
+	string         serviceName =2;
+};
+message RequestMsg {
+	MsgHeader   header   = 1;
+	int32       msgID    = 2; 
+	bytes       msgData  = 3;
+};
+
+message ResponseMsg {
+	MsgHeader    header   = 1;
+	int32        msgID    = 2;
+	bytes        msgData  = 3;
+
+};

@@ -1,0 +1,44 @@
+version: "3.0"
+services:
+  gameserver:
+    build:
+      context: .
+      dockerfile: Dockerfile.run
+    restart: always
+    environment:
+      - DS_MONGOURI=mongodb://mongodb-server:27017
+      - DS_MONGODBNAME=ds
+      - DS_REDISURI=redis://redis-server:16379
+      - DS_GAMEPORT=20000
+      - DS_DSCPORT=10000
+      - DS_DSAPORT=11000
+    ports:
+      - 20000:20000
+    depends_on:
+      - dsaserver
+      - dscserver
+  dscserver:
+    build:
+      context: .
+      dockerfile: Dockerfile_DSC.run
+    restart: always
+    environment:
+      - DS_GAMEPORT=20000
+      - DS_DSCPORT=10000
+      - DS_DSAPORT=11000
+    ports:
+      - 10000:10000
+    depends_on:
+      - dsaserver
+  dsaserver:
+    build:
+      context: .
+      dockerfile: Dockerfile_DSA.run
+    restart: always
+    environment:
+      - DS_GAMEPORT=20000
+      - DS_DSCPORT=10000
+      - DS_DSAPORT=11000
+    ports:
+      - 11000:11000
+    depends_on:

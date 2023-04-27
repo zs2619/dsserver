@@ -1,0 +1,7 @@
+FROM golang:1.20.1-bullseye
+
+ARG appname
+ENV Appname ${appname}
+
+ADD . $GOPATH/src/$appname
+WORKDIR $GOPATH/src/$appname

@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package pb;
+option go_package = ".;pb";
+
+
+/*
+dsa to ds id
+*/
+message DSA2DS_MsgID {
+	enum MsgID {
+		QueryDsStatus  = 0;
+		CreateRealm    = 1; //创建房间
+	}
+}
+
+/**
+DSA2DS_MsgIDQueryDsStatus
+*/
+message  QueryDSStatusReq{
+}
+
+/**
+DSA2DS_MsgIDCreateRealm
+*/
+message  RealmCreateReq{
+	string   realmId        =1;
+}
+
+/*
+ds to dsa id
+*/
+message DS2DSA_MsgID {
+	enum MsgID {
+		DSUpdateState  = 0; //当前游戏状态
+		DSLoadOK       = 1; //进程启动成功
+		DSGameEnd      = 2; //游戏结束，可以回收进程
+		DSRealmCreateOk= 3;//房间创建完成
+	}
+}
+
+/**
+DS2DSA_MsgIDDSLoadOK
+*/
+message  DSLoadOKReq{
+	string   dsID     =1; //DS id
+}
+
+/**
+DS2DSA_MsgIDDSGameEnd
+*/
+message  DSGameEndReq{
+	string   dsID        =1;
+}
+
+/**
+DS2DSA_MsgIDDSLoadOK
+*/
+message  DSUpdateStateReq{
+
+}
+
+/**
+DS2DSA_MsgIDDSRealmCreateOk
+*/
+message  RealmCreateResp{
+	string   realmID         =1;
+	string   dsID            =2;
+}

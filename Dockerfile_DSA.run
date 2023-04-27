@@ -1,0 +1,13 @@
+FROM debian:bullseye-20230227-slim
+
+ADD ca-certificates.crt /etc/ssl/certs/
+RUN mkdir /dsa
+COPY dsa /dsa/
+COPY assets /dsa/assets
+COPY preStop.sh /dsa/
+RUN chmod a+x /dsa/preStop.sh
+COPY postStart.sh /dsa/
+RUN chmod a+x /dsa/postStart.sh
+
+WORKDIR /dsa
+ENTRYPOINT exec ./dsa

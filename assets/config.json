@@ -1,0 +1,6 @@
+{
+	"dsPath": "/bin/echo",
+	"dsArgv": "-DSID=%s -Port=%d",
+	"dsWorkDir": "",
+	"dsIP": "127.0.0.1"
+}

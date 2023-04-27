@@ -1,0 +1,13 @@
+FROM debian:bullseye-20230227-slim
+
+ADD ca-certificates.crt /etc/ssl/certs/
+RUN mkdir /game
+COPY game /game/
+COPY assets /game/assets
+COPY preStop.sh /game/
+RUN chmod a+x /game/preStop.sh
+COPY postStart.sh /game/
+RUN chmod a+x /game/postStart.sh
+
+WORKDIR /game
+ENTRYPOINT exec ./game

@@ -1,0 +1,12 @@
+syntax = "proto3";
+package pb;
+option go_package = ".;pb";
+
+message PlayerModel{
+	string     userID            =1;   
+	string     playerID          =2; 
+	int64      level             =3;
+	int64      exp               =4;
+	string     name              =5;
+	int64      createTime        =6;
+}

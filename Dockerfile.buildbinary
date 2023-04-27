@@ -1,0 +1,18 @@
+FROM golang:1.20.1-bullseye
+
+ARG appname
+ENV Appname ${appname}
+
+ADD . $GOPATH/src/$appname
+WORKDIR $GOPATH/src/$appname
+RUN go build -o dsc  dsaserver/main.go
+RUN go build -o dsa  dscserver/main.go
+RUN go build -o game gameserver/main.go
+
+CMD tar -zcf - Dockerfile.run  \
+	ca-certificates.crt \
+	Dockerfile_DSA.run \
+	Dockerfile_DSC.run \
+	game  \
+	dsc  \ 
+	dsa   

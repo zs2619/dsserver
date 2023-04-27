@@ -1,0 +1,127 @@
+syntax = "proto3";
+
+package pb;
+option go_package = ".;pb";
+import "player.proto";
+/**
+client to server id
+*/
+message C2S_MsgID {
+	enum MsgID {
+		Ping            = 0;
+		LocalLogin      = 1;
+		AuthLogin       = 2;
+		CreateRealm     = 3;
+		JoinRealm       = 4;
+		QuickJoinRealm  = 5;
+		StartRealm      = 6;
+		QuitRealmTeam   = 7;
+	}
+}
+/**
+ C2S_MsgIDPing
+*/
+message  PingReq{
+	int64     clientTime =1; ///毫秒
+}
+
+/**
+ C2S_MsgIDLocalLogin
+*/
+message  LocalLoginReq{
+	string  userID     = 1;
+}
+
+
+/**
+ C2S_MsgIDAuthLogin
+*/
+message  AuthLoginReq{
+	string  sessionID     = 1;
+}
+
+/**
+ C2S_MsgIDCreateRealm
+*/
+message  CreateRealmReq{
+	string  realmConfigID   = 1;
+}
+
+/**
+ C2S_MsgIDJoinRealm
+*/
+message  JoinRealmReq{
+	string  realmID   = 1 ;
+}
+
+/**
+ C2S_MsgIDQuickJoinRealm
+*/
+message  QuickJoinRealmReq{
+	string  realmConfigID   = 1;
+}
+
+/**
+ C2S_MsgIDStartRealm
+*/
+message  StartRealmReq{
+}
+
+/**
+ C2S_MsgIDQuitRealmTeam
+*/
+message  QuitRealmTeamReq{
+}
+
+
+
+/**
+ server to client id
+*/
+message S2C_MsgID {
+	enum MsgID {
+		Pong            = 0;
+		LoginOK         = 1;
+		LoginFail       = 2;
+		JoinRealmOK     = 3;
+		JoinRealmFail   = 4;
+	}
+}
+
+/**
+ S2C_MsgIDPong
+*/
+message PongResp{
+	int64     clientTime =1; ///毫秒
+}
+
+
+/**
+ S2C_MsgIDLoginOK
+*/
+message LoginOKResp{
+	int64           serverTime   =1; ///毫秒
+	PlayerModel     playerModel  =2;
+}
+
+/**
+ S2C_MsgIDLoginFail
+*/
+message LoginFAILResp{
+	int64     errCode =1; 
+}
+
+/**
+ S2C_MsgIDJoinRealmOK
+*/
+message JoinRealmOKResp{
+	string  realmConfigID   = 1;
+	string  dsAddr          = 2;
+	string  teamID          = 3;
+}
+
+/**
+ S2C_MsgIDJoinRealmFail
+*/
+message JoinRealmFailResp{
+}
