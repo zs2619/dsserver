@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -35,6 +36,7 @@ func NewDSAClient(agentID, addr string) (agentClient *DSAClient, err error) {
 	var opts []grpc.DialOption
 	for {
 		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		opts = append(opts, grpc.WithTransportCredentials(insecure.NewCredentials()))
 		conn, err = grpc.DialContext(ctx, addr, opts...)
 		if err != nil {
 			logrus.WithError(errors.WithStack(err)).WithFields(logrus.Fields{
@@ -75,7 +77,7 @@ func (agent *DSAClient) Close() error {
 	return nil
 }
 
-func (agent *DSAClient) RunStreamService() {
+func (agent *DSAClient) RunStreamService() error {
 	logrus.WithFields(logrus.Fields{}).Info("RunStreamService start")
 	var err error
 	md := metadata.Pairs(common.MD_KEY_AGENTID, agent.agentID)
@@ -87,7 +89,7 @@ func (agent *DSAClient) RunStreamService() {
 		}
 		for {
 			if agent.quit.Load() {
-				return
+				return nil
 			}
 			if retry {
 				time.Sleep(3 * time.Second)
@@ -159,4 +161,5 @@ func (agent *DSAClient) RunStreamService() {
 	}
 	close(agent.streamClientEventChan)
 	logrus.WithFields(logrus.Fields{}).Info("runStreamService quit")
+	return nil
 }

@@ -45,6 +45,7 @@
                 "DS_CONFIGPATH": "${workspaceFolder}",
                 "DS_DSA_PORT": "11000",
                 "DS_DSC_GRPC_URI": "127.0.0.1:10000",
+                "DS_DSA_AgentID": "AgentID0",
             },
             "args": [],
             "showLog": true

@@ -1,37 +1,36 @@
 package main
 
 import (
-	"flag"
 	"net/http"
 	"os"
 	"strconv"
 
 	"dsservices/dscserver/dsc"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sync/errgroup"
 )
 
-func initHttpGM() error {
-	go func() {
-		createRealmHandler := func(w http.ResponseWriter, req *http.Request) {
-		}
-		getInfoHandler := func(w http.ResponseWriter, req *http.Request) {
-		}
+var g errgroup.Group
 
-		stopAllHandler := func(w http.ResponseWriter, req *http.Request) {
-		}
+func runHttpGM() error {
+	createRealmHandler := func(w http.ResponseWriter, req *http.Request) {
+	}
+	getInfoHandler := func(w http.ResponseWriter, req *http.Request) {
+	}
 
-		http.HandleFunc("/createRealm", createRealmHandler)
-		http.HandleFunc("/getInfo", getInfoHandler)
-		http.HandleFunc("/stopAll", stopAllHandler)
-		http.ListenAndServe(":8888", nil)
-	}()
-	return nil
+	stopAllHandler := func(w http.ResponseWriter, req *http.Request) {
+	}
+
+	http.HandleFunc("/createRealm", createRealmHandler)
+	http.HandleFunc("/getInfo", getInfoHandler)
+	http.HandleFunc("/stopAll", stopAllHandler)
+	return http.ListenAndServe(":8888", nil)
 }
 
 func main() {
-	logrus.Info("dsc server")
-	flag.Parse()
+	logrus.Info("dsc server start")
 
 	port, err := strconv.Atoi(os.Getenv("DS_DSC_PORT"))
 	if err != nil {
@@ -41,8 +40,25 @@ func main() {
 		return
 	}
 
-	initHttpGM()
 	dscServer, err := dsc.NewDSCServer(port)
-	dscServer.Run()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Info("dsc.NewDSCServer error")
+		return
+	}
 
+	g.Go(func() error {
+		dscServer.Run()
+		return nil
+	})
+	g.Go(func() error {
+		runHttpGM()
+		return nil
+	})
+
+	if err := g.Wait(); err != nil {
+		logrus.WithError(errors.WithStack(err)).Fatal("g.wait")
+	}
+	logrus.Info("dsc server end")
 }

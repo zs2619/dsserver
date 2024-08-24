@@ -16,19 +16,19 @@ import (
 var g errgroup.Group
 
 func main() {
-	logrus.Info("dsa server")
+	logrus.Info("dsa server start")
 	_, err := config.LoadGameConfig("assets/config.json")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
-		}).Info("config.LoadGameConfig error")
+		}).Error("config.LoadGameConfig error")
 		return
 	}
 	logrus.Info("config.LoadGameConfig OK")
 
 	grpcURL := os.Getenv("DS_DSC_GRPC_URI")
 	if len(grpcURL) == 0 {
-		logrus.WithFields(logrus.Fields{}).Info("len(grpcURL) == 0")
+		logrus.WithFields(logrus.Fields{}).Error("len(grpcURL) == 0")
 		return
 	}
 
@@ -36,19 +36,24 @@ func main() {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
-		}).Info("DS_GS_PORT error")
+		}).Error("DS_GS_PORT error")
 		return
 	}
 	agentID := os.Getenv("DS_DSA_AgentID")
 	if len(agentID) == 0 {
 		logrus.WithFields(logrus.Fields{
 			"error": err,
-		}).Info("DS_GS_PORT error")
+		}).Error("DS_GS_PORT error")
 		return
 	}
-	dsa.NewDSAClient(agentID, grpcURL)
+	agent, err := dsa.NewDSAClient(agentID, grpcURL)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("dsa.NewDSAClient error")
+	}
 
-	logrus.Info("acceptor start")
+	logrus.Info("ds acceptor start")
 	gAcceptor, err := kissnet.AcceptorFactory(
 		"tcp",
 		port,
@@ -63,7 +68,13 @@ func main() {
 	g.Go(func() error {
 		return gAcceptor.Run()
 	})
+
+	g.Go(func() error {
+		return agent.RunStreamService()
+	})
 	if err := g.Wait(); err != nil {
 		logrus.WithError(errors.WithStack(err)).Fatal("g.wait")
 	}
+
+	logrus.Info("dsa server end")
 }
