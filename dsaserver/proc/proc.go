@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
 
@@ -50,4 +51,19 @@ func StartProc(dsID, realmCfgID string) (*ProcInfo, error) {
 		OSProcess:  osProcess}
 
 	return procInfo, nil
+}
+
+func (proc *ProcInfo) KillProc() error {
+	defer func() {
+		processState, err := proc.OSProcess.Wait()
+		if err != nil {
+			logrus.WithError(errors.WithStack(err)).Error("KillProc error")
+		} else {
+			logrus.WithFields(logrus.Fields{
+				"pid":          proc.OSProcess.Pid,
+				"processState": processState,
+			}).Info("KillProc ok")
+		}
+	}()
+	return proc.OSProcess.Kill()
 }

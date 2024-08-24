@@ -1,0 +1,56 @@
+syntax = "proto3";
+package pb;
+option go_package = ".;pb";
+import "google/protobuf/any.proto";
+
+message RpcHeader{
+	enum RoomErrEnum {
+		OK            =0;
+		ReqParamError =1;
+	}
+	RoomErrEnum  ret   = 1;
+	string       errmsg= 2;
+}
+
+message StreamClientEvent{
+   google.protobuf.Any CEvent = 1;
+}
+
+message StreamServerEvent {
+   google.protobuf.Any SEvent = 1;
+}
+
+message RpcCreateRealmReq{
+	string    realmCfgID = 1;  //
+	string    dsID       = 2;
+}
+message RpcCreateRealmResp{
+	RpcHeader header   =1;
+}
+
+service GameDscRealm {
+  rpc CreateRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
+  rpc RemoveRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
+}
+
+message RpcCreateRealmResult{
+	string   dsID         = 1;
+	string   teamID       = 2;
+	string   realmCfgID   = 3;  //
+	string   dsAddr       = 4;
+}
+message RpcCreateRealmInfo{
+	string    dsID       = 1;
+	string    teamID     = 2;
+	string    realmCfgID = 3;  //
+}
+
+message RpcJoinRealmResult{
+	string    teamID = 1;  //
+}
+message RpcJoinRealmInfo{
+}
+
+service DsaDscARealm {
+  rpc StreamService(stream StreamClientEvent)returns(stream StreamServerEvent){}
+}

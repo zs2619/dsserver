@@ -10,6 +10,7 @@
 		"zxh404.vscode-proto3"
 	],
 	"remoteEnv": {
+		"GOPROXY": "https://goproxy.io,direct",
 		"PATH": "${containerEnv:PATH}:/workspace/tool/",
 		"DS_CONFIGPATH": "/workspace",
 		"DS_MONGOURI": "mongodb://172.17.0.1:27017",

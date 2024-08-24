@@ -32,7 +32,7 @@ func dsLoadOK(conn kissnet.IConnection, msg []byte) error {
 	if err != nil {
 		return err
 	}
-	dsInfo := GDSInfoMgr.GetDSByID(req.DsId)
+	dsInfo := GDSInfoMgr.GetDSByID(req.DsID)
 	if dsInfo == nil {
 		return nil
 	}
@@ -63,18 +63,18 @@ func dsRealmCreateOkResp(dsInfo *DSInfo, msg []byte) error {
 		return err
 	}
 
-	realID := "{team}_" + strings.ToLower(resp.RealmId)
+	realID := "{team}_" + strings.ToLower(resp.RealmID)
 	addr := fmt.Sprintf("%s:%d", dsInfo.DsProcInfo.Ip, dsInfo.DsProcInfo.Port)
 	rpcResp := &pb.RpcCreateRealmResult{
 		DsAddr:     addr,
 		TeamID:     realID,
 		RealmCfgID: dsInfo.RealmCfgID,
 	}
-	_, ok := dsInfo.RealmInfoMap[resp.RealmId]
+	_, ok := dsInfo.RealmInfoMap[resp.RealmID]
 	if ok {
-		dsInfo.RealmInfoMap[resp.RealmId].RealmState = Realm_CreatOK
+		dsInfo.RealmInfoMap[resp.RealmID].RealmState = Realm_CreatOK
 	}
-	CreateRealmResultChan <- rpcResp
+	GDSAClient.SendStreamService(rpcResp)
 	return nil
 }
 

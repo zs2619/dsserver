@@ -5,9 +5,26 @@ import (
 	"dsservices/pb"
 	"encoding/binary"
 	"fmt"
+
+	"github.com/sirupsen/logrus"
 )
 
-func DSAServerCB(conn kissnet.IConnection, msg []byte) error {
+type DSAServerCB struct {
+}
+
+var GDSAServerCB DSAServerCB
+
+func (dsaCB *DSAServerCB) OnDisConectCB(conn kissnet.IConnection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
+	return nil
+}
+
+func (dsaCB *DSAServerCB) OnConectCB(conn kissnet.IConnection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnConectCB")
+	return nil
+}
+
+func (dsaCB *DSAServerCB) OnMsgCB(conn kissnet.IConnection, msg []byte) error {
 	if msg == nil {
 		return nil
 	}

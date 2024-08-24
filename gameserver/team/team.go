@@ -1,10 +1,9 @@
 package team
 
 import (
-	"dsservices/common"
-	"dsservices/gameserver/realm"
-	"dsservices/store"
 	"context"
+	"dsservices/common"
+	"dsservices/store"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -212,13 +211,10 @@ func QuitRealmTeam(userID, teamID string) (int, error) {
 }
 
 func UpdateTimeoutTeam() {
-	teamUserMap, err := GetTimeoutTeam()
+	_, err := GetTimeoutTeam()
 	if err != nil {
 		//TODO
 		return
-	}
-	for k, v := range teamUserMap {
-		realm.QuickJoinRealm(k, v.RealmCfgID)
 	}
 }
 func GetTimeoutTeam() (teamUserMap map[string]*TeamInfo, err error) {

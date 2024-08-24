@@ -48,7 +48,7 @@ func main() {
 	gAcceptor, err := kissnet.AcceptorFactory(
 		"tcp",
 		port,
-		gameplayer.GameServerCB,
+		&gameplayer.GGamePlayerCB,
 	)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{

@@ -12,11 +12,12 @@ type IAcceptor interface {
 
 type Acceptor struct {
 	CMgr ConnectionMgr
-	CallBack
+	SessionCallBack
 }
 
-func AcceptorFactory(acceptorType string, port int, cb ConnectionCB) (IAcceptor, error) {
+func AcceptorFactory(acceptorType string, port int, cb SessionCallBack) (IAcceptor, error) {
 	if acceptorType == "ws" {
+		// return NewWSAcceptor(port, cb)
 		return nil, nil
 	} else if acceptorType == "tcp" {
 		return NewTcpAcceptor(port, cb)

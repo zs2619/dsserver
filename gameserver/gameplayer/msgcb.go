@@ -6,9 +6,26 @@ import (
 
 	"dsservices/kissnet"
 	"dsservices/pb"
+
+	"github.com/sirupsen/logrus"
 )
 
-func GameServerCB(conn kissnet.IConnection, msg []byte) error {
+type GameServerCB struct {
+}
+
+var GGamePlayerCB GameServerCB
+
+func (gsCB *GameServerCB) OnDisConectCB(conn kissnet.IConnection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
+	return nil
+}
+
+func (gsCB *GameServerCB) OnConectCB(conn kissnet.IConnection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnConectCB")
+	return nil
+}
+
+func (gsCB *GameServerCB) OnMsgCB(conn kissnet.IConnection, msg []byte) error {
 	if msg == nil {
 		GPlayerMgr.DelPlayer(conn)
 		return nil

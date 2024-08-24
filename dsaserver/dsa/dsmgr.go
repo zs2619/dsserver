@@ -1,10 +1,10 @@
 package dsa
 
 import (
+	"bytes"
 	"dsservices/dsaserver/proc"
 	"dsservices/kissnet"
 	"dsservices/pb"
-	"bytes"
 	"encoding/binary"
 	"fmt"
 	"sync"
@@ -38,7 +38,7 @@ type RealmInfo struct {
 }
 
 type DSInfo struct {
-	Conn           kissnet.IConnection
+	DSConn         kissnet.IConnection
 	DsProcInfo     *proc.ProcInfo
 	LastUpdateTime time.Time
 	CurrTime       time.Time
@@ -50,20 +50,49 @@ type DSInfo struct {
 	TeamIDPending string ///创建ds后，用此id创建副本
 }
 
+func NewDS(dsID, realmCfgID, teamIDPending string) (dsInfo *DSInfo, err error) {
+	procInfo, err := proc.StartProc(dsID, realmCfgID)
+	if err != nil {
+		return
+	}
+	dsInfo = &DSInfo{
+		DsProcInfo:     procInfo,
+		LastUpdateTime: time.Now(),
+		CurrTime:       time.Now(),
+		DSID:           dsID,
+		DSState:        DS_Loading,
+		RealmCfgID:     realmCfgID,
+		DSConn:         nil,
+		TeamIDPending:  teamIDPending,
+		RealmInfoMap:   make(map[string]*RealmInfo),
+	}
+	GDSInfoMgr.AddDS(dsInfo)
+	return
+}
+func (ds *DSInfo) KillDS() (err error) {
+	if ds.DSConn != nil {
+		ds.DSConn.Close()
+	}
+	if ds.DsProcInfo != nil {
+		err = ds.DsProcInfo.KillProc()
+	}
+	return
+}
+
 func (ds *DSInfo) SendMsg(msgID pb.DSA2DS_MsgID_MsgID, msg []byte) error {
 	sendMsg := new(bytes.Buffer)
 	binary.Write(sendMsg, binary.LittleEndian, uint16(msgID))
 	sendMsg.Write(msg)
-	if ds.Conn == nil {
+	if ds.DSConn == nil {
 		return fmt.Errorf("this.Conn == nil")
 	}
-	ds.Conn.SendMsg(sendMsg)
+	ds.DSConn.SendMsg(sendMsg)
 	return nil
 }
 
 func (ds *DSInfo) SetConnection(conn kissnet.IConnection) error {
-	ds.Conn = conn
-	GDSInfoMgr.DSConnMgr[ds.Conn] = ds
+	ds.DSConn = conn
+	GDSInfoMgr.DSConnMgr[ds.DSConn] = ds
 	return nil
 }
 
@@ -103,24 +132,4 @@ func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.IConnection) {
 
 	delete(dsMgr.DSConnMgr, conn)
 	delete(dsMgr.DSIDMgr, u.DSID)
-}
-
-func NewDS(dsID, realmCfgID, teamIDPending string) (dsInfo *DSInfo, err error) {
-	procInfo, err := proc.StartProc(dsID, realmCfgID)
-	if err != nil {
-		return
-	}
-	dsInfo = &DSInfo{
-		DsProcInfo:     procInfo,
-		LastUpdateTime: time.Now(),
-		CurrTime:       time.Now(),
-		DSID:           dsID,
-		DSState:        DS_Loading,
-		RealmCfgID:     realmCfgID,
-		Conn:           nil,
-		TeamIDPending:  teamIDPending,
-		RealmInfoMap:   make(map[string]*RealmInfo),
-	}
-	GDSInfoMgr.AddDS(dsInfo)
-	return
 }

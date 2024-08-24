@@ -1,8 +1,14 @@
 package kissnet
 
-import "net"
+import (
+	"fmt"
+	"net"
+)
 
-func TcpConnector(addr string, cb ConnectionCB) (IConnection, error) {
+func TcpConnector(addr string, cb SessionCallBack) (IConnection, error) {
+	if cb == nil {
+		return nil, fmt.Errorf("cb nil")
+	}
 	tcpAddr, err := net.ResolveTCPAddr("tcp", addr)
 	if err != nil {
 		return nil, err
@@ -11,6 +17,7 @@ func TcpConnector(addr string, cb ConnectionCB) (IConnection, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := NewConnection(conn, &CallBack{ConnectionCB: cb})
+	c := NewConnection(conn, cb)
+	go c.start()
 	return c, nil
 }

@@ -1,12 +1,8 @@
-
 #!/bin/bash
-
-# SRC_DIR=../proto/
-# DST_DIR=../Source/test1/pb
-# GO_DST_DIR=../Server/pb/
-
-
-# export PATH="$PATH:$(go env GOPATH)/bin"
-
-# protobuf/bin/protoc --proto_path=$SRC_DIR --cpp_out=$DST_DIR $SRC_DIR/*.proto
-# protobuf/bin/protoc --proto_path=$SRC_DIR --go_out=plugins=grpc:$DST_DIR $SRC_DIR/*.proto
+SRC_DIR=../proto
+DST_DIR=../pb
+export PATH=$PATH:`pwd`/protobuf/bin
+chmod +x `pwd`/protobuf/bin/protoc
+chmod +x `pwd`/protobuf/bin/protoc-gen-go
+chmod +x `pwd`/protobuf/bin/protoc-gen-go-grpc
+protoc --go_opt=paths=source_relative  --go-grpc_opt=paths=source_relative --proto_path=$SRC_DIR  --go-grpc_out=$DST_DIR --go_out=$DST_DIR  $SRC_DIR/*.proto

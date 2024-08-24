@@ -5,7 +5,7 @@
 
 # To fully customize the contents of this image, use the following Dockerfile instead:
 # https://github.com/microsoft/vscode-dev-containers/tree/v0.101.1/containers/alpine-3.10-git/.devcontainer/Dockerfile
-FROM golang:1.20.1-bullseye
+FROM golang:1.22.5-bullseye
 
 
 # ** [Optional] Uncomment this section to install additional packages. **

@@ -1,6 +1,13 @@
 package kissnet
 
-type ConnectionCB func(IConnection, []byte) error
-type CallBack struct {
-	ConnectionCB ConnectionCB
+type SessionOnConectCallBack interface {
+	OnConectCB(IConnection) error
+}
+type SessionOnDisConectCallBack interface {
+	OnDisConectCB(IConnection) error
+}
+type SessionCallBack interface {
+	SessionOnConectCallBack
+	SessionOnDisConectCallBack
+	OnMsgCB(IConnection, []byte) error
 }

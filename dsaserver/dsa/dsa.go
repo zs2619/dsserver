@@ -1,64 +1,162 @@
 package dsa
 
 import (
-	"dsservices/pb"
 	"context"
-	"io"
+	"dsservices/common"
+	"dsservices/pb"
+	"sync"
+	"sync/atomic"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
-var CreateRealmResultChan chan *pb.RpcCreateRealmResult = make(chan *pb.RpcCreateRealmResult, 2048)
+var GDSAClient *DSAClient
 
-func RunWaitCreateRealm(client pb.DsaDscARealmClient) {
-	var stream pb.DsaDscARealm_WaitCreateRealmClient
-	var err error
+type DSAClient struct {
+	agentID               string
+	ctx                   context.Context
+	ctxCancel             context.CancelFunc // Cancelled on close.
+	client                pb.DsaDscARealmClient
+	streamClientEventChan chan *pb.StreamClientEvent
+	stream                pb.DsaDscARealm_StreamServiceClient
+	grpcConn              *grpc.ClientConn
+	quit                  atomic.Bool
+	processMax            int
+}
+
+func NewDSAClient(agentID, addr string) (agentClient *DSAClient, err error) {
+	var conn *grpc.ClientConn
+	var opts []grpc.DialOption
 	for {
-		stream, err = client.WaitCreateRealm(context.Background())
+		ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+		conn, err = grpc.DialContext(ctx, addr, opts...)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Info("client.WaitCreateRealm error")
-			time.Sleep(time.Second * 3)
+			logrus.WithError(errors.WithStack(err)).WithFields(logrus.Fields{
+				"addr": addr,
+			}).Error("grpc.Dial error")
 		} else {
-			logrus.WithFields(logrus.Fields{}).Info("client.WaitCreateRealm ok")
+			logrus.Info("grpc.Dial ok")
 			break
 		}
 	}
+	agentClient = &DSAClient{
+		streamClientEventChan: make(chan *pb.StreamClientEvent, 1024),
+		agentID:               agentID,
+		grpcConn:              conn,
+	}
+	agentClient.client = pb.NewDsaDscARealmClient(conn)
+	agentClient.quit.Store(false)
+	return
+}
 
-	go func() {
-		for resp := range CreateRealmResultChan {
-			if err := stream.Send(resp); err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-				}).Info("client.WaitCreateRealm send error")
-			}
-		}
-	}()
-
-	for {
-		info, err := stream.Recv()
-		if err == io.EOF {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Info("client.WaitCreateRealm recv finish")
+func (agent *DSAClient) SendStreamService(resp proto.Message) (err error) {
+	if !agent.quit.Load() {
+		steamEvent := &pb.StreamClientEvent{}
+		steamEvent.CEvent, err = anypb.New(resp)
+		if err != nil {
 			return
 		}
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Info("client.WaitCreateRealm recv error")
-			time.Sleep(time.Second)
-			continue
-		}
-
-		///创建DS
-		_, err = NewDS(info.DsID, info.RealmCfgID, info.TeamID)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Info("proc.StartProc  error")
-		}
+		logrus.WithFields(logrus.Fields{"aevent": steamEvent.CEvent, "resp": resp}).Info("SendStreamService")
+		agent.streamClientEventChan <- steamEvent
 	}
+	return
+}
+func (agent *DSAClient) Close() error {
+	logrus.WithFields(logrus.Fields{}).Info("AgentClient::Close")
+	agent.quit.Store(true)
+	agent.ctxCancel()
+	agent.grpcConn.Close()
+	return nil
+}
+
+func (agent *DSAClient) RunStreamService() {
+	logrus.WithFields(logrus.Fields{}).Info("RunStreamService start")
+	var err error
+	md := metadata.Pairs(common.MD_KEY_AGENTID, agent.agentID)
+	ctx := metadata.NewOutgoingContext(context.Background(), md)
+	retry := false
+	for {
+		if agent.quit.Load() {
+			break
+		}
+		for {
+			if agent.quit.Load() {
+				return
+			}
+			if retry {
+				time.Sleep(3 * time.Second)
+				retry = false
+			}
+			agent.ctx, agent.ctxCancel = context.WithCancel(ctx)
+			agent.stream, err = agent.client.StreamService(agent.ctx)
+			if err != nil {
+				logrus.WithError(errors.WithStack(err)).Error("runStreamService:client.StreamService error")
+				retry = true
+			} else {
+				logrus.WithFields(logrus.Fields{}).Info("runStreamService:client.StreamService ok")
+				break
+			}
+		}
+		recvQuit := make(chan struct{})
+		wg := sync.WaitGroup{}
+		wg.Add(2)
+		go func() {
+			defer func() {
+				wg.Done()
+			}()
+			go func() {
+				for req := range agent.streamClientEventChan {
+					if err := agent.stream.Send(req); err != nil {
+						logrus.WithError(errors.WithStack(err)).Error("runStreamService:client.StreamServiceReqChan send error")
+						agent.stream.CloseSend()
+						return
+					}
+				}
+			}()
+
+			go func() {
+				select {
+				case <-recvQuit:
+					agent.stream.CloseSend()
+					return
+				}
+			}()
+		}()
+
+		go func() {
+			defer func() {
+				wg.Done()
+			}()
+			for {
+				// recvEvent, err := agent.stream.Recv()
+				// if err != nil {
+				// 	logrus.WithError(errors.WithStack(err)).Error("runStreamService:client recv error")
+				// 	recvQuit <- struct{}{}
+				// 	return
+				// }
+
+				// pmsg, err := recvEvent.SEvent.UnmarshalNew()
+				// if err != nil {
+				// 	logrus.WithError(errors.WithStack(err)).Error("recvEvent.PEvent.UnmarshalNew error")
+				// 	continue
+				// }
+				// if agent.cb != nil {
+				// 	err = agent.cb(agent, pmsg)
+				// 	if err != nil {
+				// 		logrus.WithError(errors.WithStack(err)).Error("agent RouterMap error")
+				// 	}
+				// }
+			}
+		}()
+		wg.Wait()
+		retry = true
+	}
+	close(agent.streamClientEventChan)
+	logrus.WithFields(logrus.Fields{}).Info("runStreamService quit")
 }

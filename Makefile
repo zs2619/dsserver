@@ -15,7 +15,7 @@ GitSHA1= $(shell git log -n1 --format=format:"%H")
 branch=$(shell git symbolic-ref --short HEAD)
 Branch=$(subst /,_,$(branch))
 
-.PHONY: build  buildimage test clean vet deployimage dockertest deployimagedesign gitversion assetsmd5
+.PHONY: build  buildimage test clean vet deployimage dockertest deployimagedesign gitversion assetsmd5 pb
 gitversion:
 	rm -rf common/civersion.go
 	echo 'package common '  >>common/civersion.go
@@ -75,5 +75,7 @@ deployimage:
 	make buildimage
 	docker-compose down
 	docker-compose up -d
+pb:
+	cd tools &&sed -i "s/\r//" gen_proto.sh &&chmod +x gen_proto.sh && ./gen_proto.sh
 	
 clean:

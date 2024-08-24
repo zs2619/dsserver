@@ -8,3 +8,5 @@ var OffSetTime = int64(0)
 func GetNowTime() time.Time {
 	return time.Now().Add(time.Duration(OffSetTime * int64(time.Second)))
 }
+
+var MD_KEY_AGENTID = "MD_KEY_AGENTID"
