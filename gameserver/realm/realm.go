@@ -8,7 +8,7 @@ import (
 )
 
 func CreateRealm(realmCfgID string) error {
-	_, err := GetRpcClient().CreateRealm(context.TODO(), &pb.RpcCreateRealmReq{})
+	_, err := GetRpcClient().CreateDS(context.TODO(), &pb.RpcCreateDSReq{})
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error": err,

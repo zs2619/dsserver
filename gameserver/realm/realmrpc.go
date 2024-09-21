@@ -7,9 +7,9 @@ import (
 	"google.golang.org/grpc"
 )
 
-var realmClient pb.GameDscRealmClient
+var dscGameClient pb.GameDscDSClient
 
-func RealmGRPCInit(serverAddr string) error {
+func DSCGameGRPCInit(serverAddr string) error {
 	var opts []grpc.DialOption
 	opts = append(opts, grpc.WithInsecure())
 	opts = append(opts, grpc.WithBlock())
@@ -24,10 +24,10 @@ func RealmGRPCInit(serverAddr string) error {
 			"address": serverAddr,
 		}).Info("connect dsc ok")
 
-	realmClient = pb.NewGameDscRealmClient(conn)
+	dscGameClient = pb.NewGameDscDSClient(conn)
 	return nil
 }
 
-func GetRpcClient() pb.GameDscRealmClient {
-	return realmClient
+func GetRpcClient() pb.GameDscDSClient {
+	return dscGameClient
 }

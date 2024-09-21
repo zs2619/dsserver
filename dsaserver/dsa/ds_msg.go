@@ -4,7 +4,6 @@ import (
 	"dsservices/kissnet"
 	"dsservices/pb"
 	"fmt"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -23,7 +22,7 @@ func init() {
 
 func RegisterMsgMapFunc() {
 	msgMap[pb.DS2DSA_MsgID_DSGameEnd] = dsGameEndResp
-	msgMap[pb.DS2DSA_MsgID_DSRealmCreateOk] = dsRealmCreateOkResp
+	msgMap[pb.DS2DSA_MsgID_DSDSCreateOk] = dsDSCreateOkResp
 }
 
 func dsLoadOK(conn kissnet.IConnection, msg []byte) error {
@@ -41,9 +40,7 @@ func dsLoadOK(conn kissnet.IConnection, msg []byte) error {
 		/// 创建房间
 		dsInfo.DSState = DS_LoadOK
 
-		dsInfo.RealmInfoMap[dsInfo.TeamIDPending] = &RealmInfo{RealmState: Realm_CreatIng}
-		dsRealmCreate(dsInfo, dsInfo.TeamIDPending)
-		dsInfo.TeamIDPending = ""
+		dsDSCreate(dsInfo)
 
 	}
 	return nil
@@ -55,37 +52,30 @@ func dsGameEndResp(dsInfo *DSInfo, msg []byte) error {
 	return nil
 }
 
-func dsRealmCreateOkResp(dsInfo *DSInfo, msg []byte) error {
-	logrus.Debug("dsRealmCreateOk")
-	resp := &pb.RealmCreateResp{}
+func dsDSCreateOkResp(dsInfo *DSInfo, msg []byte) error {
+	logrus.Debug("dsDSCreateOk")
+	resp := &pb.DSCreateResp{}
 	err := proto.Unmarshal(msg, resp)
 	if err != nil {
 		return err
 	}
 
-	realID := "{team}_" + strings.ToLower(resp.RealmID)
 	addr := fmt.Sprintf("%s:%d", dsInfo.DsProcInfo.Ip, dsInfo.DsProcInfo.Port)
-	rpcResp := &pb.RpcCreateRealmResult{
+	rpcResp := &pb.RpcCreateDSResult{
 		DsAddr:     addr,
-		TeamID:     realID,
 		RealmCfgID: dsInfo.RealmCfgID,
 	}
-	_, ok := dsInfo.RealmInfoMap[resp.RealmID]
-	if ok {
-		dsInfo.RealmInfoMap[resp.RealmID].RealmState = Realm_CreatOK
-	}
-	GDSAClient.SendStreamService(rpcResp)
+	GDSAClient.Send2DSC(rpcResp)
 	return nil
 }
 
-func dsRealmCreate(dsInfo *DSInfo, realmID string) error {
-	RealmCreateReq := &pb.RealmCreateReq{}
-	//TODo:暂时去掉
-	RealmCreateReq.RealmId = realmID[7:]
-	MsgData, err := proto.Marshal(RealmCreateReq)
+func dsDSCreate(dsInfo *DSInfo) error {
+	DSCreateReq := &pb.DSCreateReq{}
+	DSCreateReq.DsID = dsInfo.DSID
+	MsgData, err := proto.Marshal(DSCreateReq)
 	if err != nil {
 		return err
 	}
-	dsInfo.SendMsg(pb.DSA2DS_MsgID_CreateRealm, MsgData)
+	dsInfo.SendMsg(pb.DSA2DS_MsgID_CreateDS, MsgData)
 	return nil
 }

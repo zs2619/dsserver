@@ -31,7 +31,7 @@ func main() {
 		logrus.WithFields(logrus.Fields{}).Info("len(grpcURL) == 0")
 		return
 	}
-	err = realm.RealmGRPCInit(grpcURL)
+	err = realm.DSCGameGRPCInit(grpcURL)
 	if err != nil {
 		logrus.Info("realm.RealmGRPCInit error")
 		return

@@ -29,13 +29,9 @@ const (
 	DS_LoadOK
 )
 const (
-	Realm_CreatIng = iota
-	Realm_CreatOK
+	DS_CreatIng = iota
+	DS_CreatOK
 )
-
-type RealmInfo struct {
-	RealmState int
-}
 
 type DSInfo struct {
 	DSConn         kissnet.IConnection
@@ -44,13 +40,10 @@ type DSInfo struct {
 	CurrTime       time.Time
 	DSID           string ///ds 唯一id
 	DSState        int
-	RealmInfoMap   map[string]*RealmInfo
 	RealmCfgID     string
-
-	TeamIDPending string ///创建ds后，用此id创建副本
 }
 
-func NewDS(dsID, realmCfgID, teamIDPending string) (dsInfo *DSInfo, err error) {
+func NewDS(dsID, realmCfgID string) (dsInfo *DSInfo, err error) {
 	procInfo, err := proc.StartProc(dsID, realmCfgID)
 	if err != nil {
 		return
@@ -63,8 +56,6 @@ func NewDS(dsID, realmCfgID, teamIDPending string) (dsInfo *DSInfo, err error) {
 		DSState:        DS_Loading,
 		RealmCfgID:     realmCfgID,
 		DSConn:         nil,
-		TeamIDPending:  teamIDPending,
-		RealmInfoMap:   make(map[string]*RealmInfo),
 	}
 	GDSInfoMgr.AddDS(dsInfo)
 	return

@@ -23,9 +23,9 @@ type DSAClient struct {
 	agentID               string
 	ctx                   context.Context
 	ctxCancel             context.CancelFunc // Cancelled on close.
-	client                pb.DsaDscARealmClient
+	client                pb.DsaDscADSClient
 	streamClientEventChan chan *pb.StreamClientEvent
-	stream                pb.DsaDscARealm_StreamServiceClient
+	stream                pb.DsaDscADS_StreamServiceClient
 	grpcConn              *grpc.ClientConn
 	quit                  atomic.Bool
 	processMax            int
@@ -52,20 +52,20 @@ func NewDSAClient(agentID, addr string) (agentClient *DSAClient, err error) {
 		agentID:               agentID,
 		grpcConn:              conn,
 	}
-	agentClient.client = pb.NewDsaDscARealmClient(conn)
+	agentClient.client = pb.NewDsaDscADSClient(conn)
 	agentClient.quit.Store(false)
 	return
 }
 
-func (agent *DSAClient) SendStreamService(resp proto.Message) (err error) {
+func (agent *DSAClient) Send2DSC(resp proto.Message) (err error) {
 	if !agent.quit.Load() {
-		steamEvent := &pb.StreamClientEvent{}
-		steamEvent.CEvent, err = anypb.New(resp)
+		clientEvent := &pb.StreamClientEvent{}
+		clientEvent.CEvent, err = anypb.New(resp)
 		if err != nil {
 			return
 		}
-		logrus.WithFields(logrus.Fields{"aevent": steamEvent.CEvent, "resp": resp}).Info("SendStreamService")
-		agent.streamClientEventChan <- steamEvent
+		logrus.WithFields(logrus.Fields{"cevent": clientEvent.CEvent, "resp": resp}).Info("Send2DSC")
+		agent.streamClientEventChan <- clientEvent
 	}
 	return
 }

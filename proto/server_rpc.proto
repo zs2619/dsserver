@@ -20,37 +20,45 @@ message StreamServerEvent {
    google.protobuf.Any SEvent = 1;
 }
 
-message RpcCreateRealmReq{
+message RpcCreateDSReq{
 	string    realmCfgID = 1;  //
 	string    dsID       = 2;
 }
-message RpcCreateRealmResp{
+message RpcCreateDSResp{
 	RpcHeader header   =1;
 }
 
-service GameDscRealm {
-  rpc CreateRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
-  rpc RemoveRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
+message RpcRemoveDSReq{
+	string    realmCfgID = 1;  //
+	string    dsID       = 2;
+}
+message RpcRemoveDSResp{
+	RpcHeader header   =1;
 }
 
-message RpcCreateRealmResult{
+service GameDscDS {
+  rpc CreateDS (RpcCreateDSReq) returns (RpcCreateDSResp) {}
+  rpc RemoveDS (RpcRemoveDSReq) returns (RpcRemoveDSResp) {}
+}
+
+message RpcCreateDSResult{
 	string   dsID         = 1;
 	string   teamID       = 2;
 	string   realmCfgID   = 3;  //
 	string   dsAddr       = 4;
 }
-message RpcCreateRealmInfo{
+message RpcCreateDSInfo{
 	string    dsID       = 1;
 	string    teamID     = 2;
 	string    realmCfgID = 3;  //
 }
 
-message RpcJoinRealmResult{
+message RpcJoinDSResult{
 	string    teamID = 1;  //
 }
-message RpcJoinRealmInfo{
+message RpcJoinDSInfo{
 }
 
-service DsaDscARealm {
+service DsaDscADS {
   rpc StreamService(stream StreamClientEvent)returns(stream StreamServerEvent){}
 }

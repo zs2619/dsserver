@@ -18,167 +18,167 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// GameDscRealmClient is the client API for GameDscRealm service.
+// GameDscDSClient is the client API for GameDscDS service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GameDscRealmClient interface {
-	CreateRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error)
-	RemoveRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error)
+type GameDscDSClient interface {
+	CreateDS(ctx context.Context, in *RpcCreateDSReq, opts ...grpc.CallOption) (*RpcCreateDSResp, error)
+	RemoveDS(ctx context.Context, in *RpcRemoveDSReq, opts ...grpc.CallOption) (*RpcRemoveDSResp, error)
 }
 
-type gameDscRealmClient struct {
+type gameDscDSClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGameDscRealmClient(cc grpc.ClientConnInterface) GameDscRealmClient {
-	return &gameDscRealmClient{cc}
+func NewGameDscDSClient(cc grpc.ClientConnInterface) GameDscDSClient {
+	return &gameDscDSClient{cc}
 }
 
-func (c *gameDscRealmClient) CreateRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error) {
-	out := new(RpcCreateRealmResp)
-	err := c.cc.Invoke(ctx, "/pb.GameDscRealm/CreateRealm", in, out, opts...)
+func (c *gameDscDSClient) CreateDS(ctx context.Context, in *RpcCreateDSReq, opts ...grpc.CallOption) (*RpcCreateDSResp, error) {
+	out := new(RpcCreateDSResp)
+	err := c.cc.Invoke(ctx, "/pb.GameDscDS/CreateDS", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gameDscRealmClient) RemoveRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error) {
-	out := new(RpcCreateRealmResp)
-	err := c.cc.Invoke(ctx, "/pb.GameDscRealm/RemoveRealm", in, out, opts...)
+func (c *gameDscDSClient) RemoveDS(ctx context.Context, in *RpcRemoveDSReq, opts ...grpc.CallOption) (*RpcRemoveDSResp, error) {
+	out := new(RpcRemoveDSResp)
+	err := c.cc.Invoke(ctx, "/pb.GameDscDS/RemoveDS", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// GameDscRealmServer is the server API for GameDscRealm service.
-// All implementations must embed UnimplementedGameDscRealmServer
+// GameDscDSServer is the server API for GameDscDS service.
+// All implementations must embed UnimplementedGameDscDSServer
 // for forward compatibility
-type GameDscRealmServer interface {
-	CreateRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error)
-	RemoveRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error)
-	mustEmbedUnimplementedGameDscRealmServer()
+type GameDscDSServer interface {
+	CreateDS(context.Context, *RpcCreateDSReq) (*RpcCreateDSResp, error)
+	RemoveDS(context.Context, *RpcRemoveDSReq) (*RpcRemoveDSResp, error)
+	mustEmbedUnimplementedGameDscDSServer()
 }
 
-// UnimplementedGameDscRealmServer must be embedded to have forward compatible implementations.
-type UnimplementedGameDscRealmServer struct {
+// UnimplementedGameDscDSServer must be embedded to have forward compatible implementations.
+type UnimplementedGameDscDSServer struct {
 }
 
-func (UnimplementedGameDscRealmServer) CreateRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateRealm not implemented")
+func (UnimplementedGameDscDSServer) CreateDS(context.Context, *RpcCreateDSReq) (*RpcCreateDSResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDS not implemented")
 }
-func (UnimplementedGameDscRealmServer) RemoveRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveRealm not implemented")
+func (UnimplementedGameDscDSServer) RemoveDS(context.Context, *RpcRemoveDSReq) (*RpcRemoveDSResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDS not implemented")
 }
-func (UnimplementedGameDscRealmServer) mustEmbedUnimplementedGameDscRealmServer() {}
+func (UnimplementedGameDscDSServer) mustEmbedUnimplementedGameDscDSServer() {}
 
-// UnsafeGameDscRealmServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GameDscRealmServer will
+// UnsafeGameDscDSServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GameDscDSServer will
 // result in compilation errors.
-type UnsafeGameDscRealmServer interface {
-	mustEmbedUnimplementedGameDscRealmServer()
+type UnsafeGameDscDSServer interface {
+	mustEmbedUnimplementedGameDscDSServer()
 }
 
-func RegisterGameDscRealmServer(s grpc.ServiceRegistrar, srv GameDscRealmServer) {
-	s.RegisterService(&GameDscRealm_ServiceDesc, srv)
+func RegisterGameDscDSServer(s grpc.ServiceRegistrar, srv GameDscDSServer) {
+	s.RegisterService(&GameDscDS_ServiceDesc, srv)
 }
 
-func _GameDscRealm_CreateRealm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RpcCreateRealmReq)
+func _GameDscDS_CreateDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RpcCreateDSReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GameDscRealmServer).CreateRealm(ctx, in)
+		return srv.(GameDscDSServer).CreateDS(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.GameDscRealm/CreateRealm",
+		FullMethod: "/pb.GameDscDS/CreateDS",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameDscRealmServer).CreateRealm(ctx, req.(*RpcCreateRealmReq))
+		return srv.(GameDscDSServer).CreateDS(ctx, req.(*RpcCreateDSReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GameDscRealm_RemoveRealm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RpcCreateRealmReq)
+func _GameDscDS_RemoveDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RpcRemoveDSReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GameDscRealmServer).RemoveRealm(ctx, in)
+		return srv.(GameDscDSServer).RemoveDS(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.GameDscRealm/RemoveRealm",
+		FullMethod: "/pb.GameDscDS/RemoveDS",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GameDscRealmServer).RemoveRealm(ctx, req.(*RpcCreateRealmReq))
+		return srv.(GameDscDSServer).RemoveDS(ctx, req.(*RpcRemoveDSReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// GameDscRealm_ServiceDesc is the grpc.ServiceDesc for GameDscRealm service.
+// GameDscDS_ServiceDesc is the grpc.ServiceDesc for GameDscDS service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GameDscRealm_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.GameDscRealm",
-	HandlerType: (*GameDscRealmServer)(nil),
+var GameDscDS_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.GameDscDS",
+	HandlerType: (*GameDscDSServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateRealm",
-			Handler:    _GameDscRealm_CreateRealm_Handler,
+			MethodName: "CreateDS",
+			Handler:    _GameDscDS_CreateDS_Handler,
 		},
 		{
-			MethodName: "RemoveRealm",
-			Handler:    _GameDscRealm_RemoveRealm_Handler,
+			MethodName: "RemoveDS",
+			Handler:    _GameDscDS_RemoveDS_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "server_rpc.proto",
 }
 
-// DsaDscARealmClient is the client API for DsaDscARealm service.
+// DsaDscADSClient is the client API for DsaDscADS service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type DsaDscARealmClient interface {
-	StreamService(ctx context.Context, opts ...grpc.CallOption) (DsaDscARealm_StreamServiceClient, error)
+type DsaDscADSClient interface {
+	StreamService(ctx context.Context, opts ...grpc.CallOption) (DsaDscADS_StreamServiceClient, error)
 }
 
-type dsaDscARealmClient struct {
+type dsaDscADSClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewDsaDscARealmClient(cc grpc.ClientConnInterface) DsaDscARealmClient {
-	return &dsaDscARealmClient{cc}
+func NewDsaDscADSClient(cc grpc.ClientConnInterface) DsaDscADSClient {
+	return &dsaDscADSClient{cc}
 }
 
-func (c *dsaDscARealmClient) StreamService(ctx context.Context, opts ...grpc.CallOption) (DsaDscARealm_StreamServiceClient, error) {
-	stream, err := c.cc.NewStream(ctx, &DsaDscARealm_ServiceDesc.Streams[0], "/pb.DsaDscARealm/StreamService", opts...)
+func (c *dsaDscADSClient) StreamService(ctx context.Context, opts ...grpc.CallOption) (DsaDscADS_StreamServiceClient, error) {
+	stream, err := c.cc.NewStream(ctx, &DsaDscADS_ServiceDesc.Streams[0], "/pb.DsaDscADS/StreamService", opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &dsaDscARealmStreamServiceClient{stream}
+	x := &dsaDscADSStreamServiceClient{stream}
 	return x, nil
 }
 
-type DsaDscARealm_StreamServiceClient interface {
+type DsaDscADS_StreamServiceClient interface {
 	Send(*StreamClientEvent) error
 	Recv() (*StreamServerEvent, error)
 	grpc.ClientStream
 }
 
-type dsaDscARealmStreamServiceClient struct {
+type dsaDscADSStreamServiceClient struct {
 	grpc.ClientStream
 }
 
-func (x *dsaDscARealmStreamServiceClient) Send(m *StreamClientEvent) error {
+func (x *dsaDscADSStreamServiceClient) Send(m *StreamClientEvent) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *dsaDscARealmStreamServiceClient) Recv() (*StreamServerEvent, error) {
+func (x *dsaDscADSStreamServiceClient) Recv() (*StreamServerEvent, error) {
 	m := new(StreamServerEvent)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -186,53 +186,53 @@ func (x *dsaDscARealmStreamServiceClient) Recv() (*StreamServerEvent, error) {
 	return m, nil
 }
 
-// DsaDscARealmServer is the server API for DsaDscARealm service.
-// All implementations must embed UnimplementedDsaDscARealmServer
+// DsaDscADSServer is the server API for DsaDscADS service.
+// All implementations must embed UnimplementedDsaDscADSServer
 // for forward compatibility
-type DsaDscARealmServer interface {
-	StreamService(DsaDscARealm_StreamServiceServer) error
-	mustEmbedUnimplementedDsaDscARealmServer()
+type DsaDscADSServer interface {
+	StreamService(DsaDscADS_StreamServiceServer) error
+	mustEmbedUnimplementedDsaDscADSServer()
 }
 
-// UnimplementedDsaDscARealmServer must be embedded to have forward compatible implementations.
-type UnimplementedDsaDscARealmServer struct {
+// UnimplementedDsaDscADSServer must be embedded to have forward compatible implementations.
+type UnimplementedDsaDscADSServer struct {
 }
 
-func (UnimplementedDsaDscARealmServer) StreamService(DsaDscARealm_StreamServiceServer) error {
+func (UnimplementedDsaDscADSServer) StreamService(DsaDscADS_StreamServiceServer) error {
 	return status.Errorf(codes.Unimplemented, "method StreamService not implemented")
 }
-func (UnimplementedDsaDscARealmServer) mustEmbedUnimplementedDsaDscARealmServer() {}
+func (UnimplementedDsaDscADSServer) mustEmbedUnimplementedDsaDscADSServer() {}
 
-// UnsafeDsaDscARealmServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to DsaDscARealmServer will
+// UnsafeDsaDscADSServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to DsaDscADSServer will
 // result in compilation errors.
-type UnsafeDsaDscARealmServer interface {
-	mustEmbedUnimplementedDsaDscARealmServer()
+type UnsafeDsaDscADSServer interface {
+	mustEmbedUnimplementedDsaDscADSServer()
 }
 
-func RegisterDsaDscARealmServer(s grpc.ServiceRegistrar, srv DsaDscARealmServer) {
-	s.RegisterService(&DsaDscARealm_ServiceDesc, srv)
+func RegisterDsaDscADSServer(s grpc.ServiceRegistrar, srv DsaDscADSServer) {
+	s.RegisterService(&DsaDscADS_ServiceDesc, srv)
 }
 
-func _DsaDscARealm_StreamService_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(DsaDscARealmServer).StreamService(&dsaDscARealmStreamServiceServer{stream})
+func _DsaDscADS_StreamService_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(DsaDscADSServer).StreamService(&dsaDscADSStreamServiceServer{stream})
 }
 
-type DsaDscARealm_StreamServiceServer interface {
+type DsaDscADS_StreamServiceServer interface {
 	Send(*StreamServerEvent) error
 	Recv() (*StreamClientEvent, error)
 	grpc.ServerStream
 }
 
-type dsaDscARealmStreamServiceServer struct {
+type dsaDscADSStreamServiceServer struct {
 	grpc.ServerStream
 }
 
-func (x *dsaDscARealmStreamServiceServer) Send(m *StreamServerEvent) error {
+func (x *dsaDscADSStreamServiceServer) Send(m *StreamServerEvent) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *dsaDscARealmStreamServiceServer) Recv() (*StreamClientEvent, error) {
+func (x *dsaDscADSStreamServiceServer) Recv() (*StreamClientEvent, error) {
 	m := new(StreamClientEvent)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
@@ -240,17 +240,17 @@ func (x *dsaDscARealmStreamServiceServer) Recv() (*StreamClientEvent, error) {
 	return m, nil
 }
 
-// DsaDscARealm_ServiceDesc is the grpc.ServiceDesc for DsaDscARealm service.
+// DsaDscADS_ServiceDesc is the grpc.ServiceDesc for DsaDscADS service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var DsaDscARealm_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.DsaDscARealm",
-	HandlerType: (*DsaDscARealmServer)(nil),
+var DsaDscADS_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.DsaDscADS",
+	HandlerType: (*DsaDscADSServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "StreamService",
-			Handler:       _DsaDscARealm_StreamService_Handler,
+			Handler:       _DsaDscADS_StreamService_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},

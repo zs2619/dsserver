@@ -25,8 +25,8 @@ func (dscServer *DSCServer) Run() {
 	if err != nil {
 		logrus.Fatalf("failed to listen: %v", err)
 	}
-	pb.RegisterGameDscRealmServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
-	pb.RegisterDsaDscARealmServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})
+	pb.RegisterGameDscDSServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
+	pb.RegisterDsaDscADSServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})
 	dscServer.grpcServer.Serve(lis)
 }
 
@@ -37,10 +37,4 @@ func NewDSCServer(port int) (dscServer *DSCServer, err error) {
 	}
 	dscServer.grpcServer = grpc.NewServer(opts...)
 	return
-}
-
-func CreateRealm(dsID, teamID, realmCfgID string) error {
-	// info := &pb.RpcCreateRealmInfo{DsID: dsID, TeamID: teamID, RealmCfgID: realmCfgID}
-	// CreateRealmChan <- info
-	return nil
 }

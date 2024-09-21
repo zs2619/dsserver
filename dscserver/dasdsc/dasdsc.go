@@ -5,8 +5,6 @@ import (
 	"dsservices/dscserver/dsamgr"
 	"dsservices/pb"
 	"fmt"
-	"sync"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/metadata"
@@ -14,10 +12,10 @@ import (
 )
 
 type RPCDasDscServer struct {
-	pb.UnimplementedDsaDscARealmServer
+	pb.UnimplementedDsaDscADSServer
 }
 
-func (rpcServer *RPCDasDscServer) StreamService(stream pb.DsaDscARealm_StreamServiceServer) error {
+func (rpcServer *RPCDasDscServer) StreamService(stream pb.DsaDscADS_StreamServiceServer) error {
 	md, ok := metadata.FromIncomingContext(stream.Context())
 	if !ok {
 		return fmt.Errorf("peer.FromContext error")
@@ -39,39 +37,13 @@ func (rpcServer *RPCDasDscServer) StreamService(stream pb.DsaDscARealm_StreamSer
 
 	dsa := dsamgr.GDSAMgr.Get(agentName)
 	if dsa == nil {
-		// 创建
-		dsa = dsamgr.NewDSAInfo(agentName, peer.Addr.String())
+		// create new dsainfo
+		dsa = dsamgr.NewDSAInfo(agentName, peer.Addr.String(), stream)
 		dsamgr.GDSAMgr.Add(dsa)
+		dsa.Run()
+	} else {
+		//TODO remove old and add new
 	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(2)
-	go func() {
-		for {
-			data, err := stream.Recv()
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-					"data":  data,
-				}).Info("WaitCreateRealm error")
-				break
-			}
-		}
-		wg.Done()
-	}()
-
-	go func() {
-		for info := range dsa.StreamServerEventChan {
-			if info == nil {
-				break
-			}
-			stream.Send(info)
-			time.Sleep(time.Microsecond * 100)
-		}
-		wg.Done()
-	}()
-
-	wg.Wait()
 
 	logrus.WithFields(logrus.Fields{"agentName": agentName}).Info("StreamService end")
 	return nil

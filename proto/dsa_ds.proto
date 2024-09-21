@@ -10,7 +10,7 @@ dsa to ds id
 message DSA2DS_MsgID {
 	enum MsgID {
 		QueryDsStatus  = 0;
-		CreateRealm    = 1; //创建房间
+		CreateDS    = 1; //创建DS
 	}
 }
 
@@ -21,10 +21,10 @@ message  QueryDSStatusReq{
 }
 
 /**
-DSA2DS_MsgIDCreateRealm
+DSA2DS_MsgIDCreateDS
 */
-message  RealmCreateReq{
-	string   realmId        =1;
+message  DSCreateReq{
+	string   dsID        =1;
 }
 
 /*
@@ -35,7 +35,7 @@ message DS2DSA_MsgID {
 		DSUpdateState  = 0; //当前游戏状态
 		DSLoadOK       = 1; //进程启动成功
 		DSGameEnd      = 2; //游戏结束，可以回收进程
-		DSRealmCreateOk= 3;//房间创建完成
+		DSDSCreateOk= 3;//DS创建完成
 	}
 }
 
@@ -61,9 +61,9 @@ message  DSUpdateStateReq{
 }
 
 /**
-DS2DSA_MsgIDDSRealmCreateOk
+DS2DSA_MsgIDDSDSCreateOk
 */
-message  RealmCreateResp{
+message  DSCreateResp{
 	string   realmID         =1;
 	string   dsID            =2;
 }
