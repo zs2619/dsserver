@@ -12,10 +12,10 @@ import (
 )
 
 type RPCDasDscServer struct {
-	pb.UnimplementedDsaDscADSServer
+	pb.UnimplementedStreamDscDSAServer
 }
 
-func (rpcServer *RPCDasDscServer) StreamService(stream pb.DsaDscADS_StreamServiceServer) error {
+func (rpcServer *RPCDasDscServer) StreamService(stream pb.StreamDscDSA_StreamServiceServer) error {
 	md, ok := metadata.FromIncomingContext(stream.Context())
 	if !ok {
 		return fmt.Errorf("peer.FromContext error")

@@ -19,16 +19,18 @@ import (
 
 var GDSAClient *DSAClient
 
+type RouterMapHandle func(*DSAClient, proto.Message) error
+
 type DSAClient struct {
 	agentID               string
 	ctx                   context.Context
 	ctxCancel             context.CancelFunc // Cancelled on close.
-	client                pb.DsaDscADSClient
+	client                pb.StreamDscDSAClient
 	streamClientEventChan chan *pb.StreamClientEvent
-	stream                pb.DsaDscADS_StreamServiceClient
+	stream                pb.StreamDscDSA_StreamServiceClient
 	grpcConn              *grpc.ClientConn
 	quit                  atomic.Bool
-	processMax            int
+	cb                    RouterMapHandle
 }
 
 func NewDSAClient(agentID, addr string) (agentClient *DSAClient, err error) {
@@ -52,7 +54,7 @@ func NewDSAClient(agentID, addr string) (agentClient *DSAClient, err error) {
 		agentID:               agentID,
 		grpcConn:              conn,
 	}
-	agentClient.client = pb.NewDsaDscADSClient(conn)
+	agentClient.client = pb.NewStreamDscDSAClient(conn)
 	agentClient.quit.Store(false)
 	return
 }
@@ -136,24 +138,24 @@ func (agent *DSAClient) RunStreamService() error {
 				wg.Done()
 			}()
 			for {
-				// recvEvent, err := agent.stream.Recv()
-				// if err != nil {
-				// 	logrus.WithError(errors.WithStack(err)).Error("runStreamService:client recv error")
-				// 	recvQuit <- struct{}{}
-				// 	return
-				// }
+				recvEvent, err := agent.stream.Recv()
+				if err != nil {
+					logrus.WithError(errors.WithStack(err)).Error("runStreamService:client recv error")
+					recvQuit <- struct{}{}
+					return
+				}
 
-				// pmsg, err := recvEvent.SEvent.UnmarshalNew()
-				// if err != nil {
-				// 	logrus.WithError(errors.WithStack(err)).Error("recvEvent.PEvent.UnmarshalNew error")
-				// 	continue
-				// }
-				// if agent.cb != nil {
-				// 	err = agent.cb(agent, pmsg)
-				// 	if err != nil {
-				// 		logrus.WithError(errors.WithStack(err)).Error("agent RouterMap error")
-				// 	}
-				// }
+				pmsg, err := recvEvent.SEvent.UnmarshalNew()
+				if err != nil {
+					logrus.WithError(errors.WithStack(err)).Error("recvEvent.PEvent.UnmarshalNew error")
+					continue
+				}
+				if agent.cb != nil {
+					err = agent.cb(agent, pmsg)
+					if err != nil {
+						logrus.WithError(errors.WithStack(err)).Error("agent RouterMap error")
+					}
+				}
 			}
 		}()
 		wg.Wait()

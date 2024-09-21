@@ -1,7 +1,6 @@
-package launch
+package common
 
 import (
-	"dsservices/common"
 	"dsservices/config"
 
 	"github.com/sirupsen/logrus"
@@ -9,7 +8,7 @@ import (
 
 func Init() {
 	logrus.SetFormatter(&logrus.JSONFormatter{})
-	logrus.Info("GitVersion:", common.GitVersion)
+	logrus.Info("GitVersion:", GitVersion)
 	_, err := config.LoadGameConfig("assets/config.json")
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -19,10 +18,10 @@ func Init() {
 	}
 	logrus.Info("config.LoadGameConfig OK")
 
-	common.InitCron()
+	InitCron()
 
 }
 
 func Finish() {
-	common.FinishCron()
+	FinishCron()
 }

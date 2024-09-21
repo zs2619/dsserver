@@ -122,113 +122,18 @@ func (x *RpcHeader) GetErrmsg() string {
 	return ""
 }
 
-type StreamClientEvent struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	CEvent *anypb.Any `protobuf:"bytes,1,opt,name=CEvent,proto3" json:"CEvent,omitempty"`
-}
-
-func (x *StreamClientEvent) Reset() {
-	*x = StreamClientEvent{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[1]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *StreamClientEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StreamClientEvent) ProtoMessage() {}
-
-func (x *StreamClientEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[1]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StreamClientEvent.ProtoReflect.Descriptor instead.
-func (*StreamClientEvent) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{1}
-}
-
-func (x *StreamClientEvent) GetCEvent() *anypb.Any {
-	if x != nil {
-		return x.CEvent
-	}
-	return nil
-}
-
-type StreamServerEvent struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	SEvent *anypb.Any `protobuf:"bytes,1,opt,name=SEvent,proto3" json:"SEvent,omitempty"`
-}
-
-func (x *StreamServerEvent) Reset() {
-	*x = StreamServerEvent{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *StreamServerEvent) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StreamServerEvent) ProtoMessage() {}
-
-func (x *StreamServerEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StreamServerEvent.ProtoReflect.Descriptor instead.
-func (*StreamServerEvent) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *StreamServerEvent) GetSEvent() *anypb.Any {
-	if x != nil {
-		return x.SEvent
-	}
-	return nil
-}
-
 type RpcCreateDSReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	RealmCfgID string `protobuf:"bytes,1,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
-	DsID       string `protobuf:"bytes,2,opt,name=dsID,proto3" json:"dsID,omitempty"`
 }
 
 func (x *RpcCreateDSReq) Reset() {
 	*x = RpcCreateDSReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[3]
+		mi := &file_server_rpc_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -241,7 +146,7 @@ func (x *RpcCreateDSReq) String() string {
 func (*RpcCreateDSReq) ProtoMessage() {}
 
 func (x *RpcCreateDSReq) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[3]
+	mi := &file_server_rpc_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -254,7 +159,7 @@ func (x *RpcCreateDSReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RpcCreateDSReq.ProtoReflect.Descriptor instead.
 func (*RpcCreateDSReq) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{3}
+	return file_server_rpc_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *RpcCreateDSReq) GetRealmCfgID() string {
@@ -264,25 +169,20 @@ func (x *RpcCreateDSReq) GetRealmCfgID() string {
 	return ""
 }
 
-func (x *RpcCreateDSReq) GetDsID() string {
-	if x != nil {
-		return x.DsID
-	}
-	return ""
-}
-
 type RpcCreateDSResp struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Header *RpcHeader `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
+	Header     *RpcHeader `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
+	DsID       string     `protobuf:"bytes,2,opt,name=dsID,proto3" json:"dsID,omitempty"`
+	RealmCfgID string     `protobuf:"bytes,3,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
 }
 
 func (x *RpcCreateDSResp) Reset() {
 	*x = RpcCreateDSResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[4]
+		mi := &file_server_rpc_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -295,7 +195,7 @@ func (x *RpcCreateDSResp) String() string {
 func (*RpcCreateDSResp) ProtoMessage() {}
 
 func (x *RpcCreateDSResp) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[4]
+	mi := &file_server_rpc_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -308,7 +208,7 @@ func (x *RpcCreateDSResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RpcCreateDSResp.ProtoReflect.Descriptor instead.
 func (*RpcCreateDSResp) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{4}
+	return file_server_rpc_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *RpcCreateDSResp) GetHeader() *RpcHeader {
@@ -318,19 +218,32 @@ func (x *RpcCreateDSResp) GetHeader() *RpcHeader {
 	return nil
 }
 
+func (x *RpcCreateDSResp) GetDsID() string {
+	if x != nil {
+		return x.DsID
+	}
+	return ""
+}
+
+func (x *RpcCreateDSResp) GetRealmCfgID() string {
+	if x != nil {
+		return x.RealmCfgID
+	}
+	return ""
+}
+
 type RpcRemoveDSReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RealmCfgID string `protobuf:"bytes,1,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
-	DsID       string `protobuf:"bytes,2,opt,name=dsID,proto3" json:"dsID,omitempty"`
+	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
 }
 
 func (x *RpcRemoveDSReq) Reset() {
 	*x = RpcRemoveDSReq{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[5]
+		mi := &file_server_rpc_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -343,7 +256,7 @@ func (x *RpcRemoveDSReq) String() string {
 func (*RpcRemoveDSReq) ProtoMessage() {}
 
 func (x *RpcRemoveDSReq) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[5]
+	mi := &file_server_rpc_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -356,14 +269,7 @@ func (x *RpcRemoveDSReq) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RpcRemoveDSReq.ProtoReflect.Descriptor instead.
 func (*RpcRemoveDSReq) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *RpcRemoveDSReq) GetRealmCfgID() string {
-	if x != nil {
-		return x.RealmCfgID
-	}
-	return ""
+	return file_server_rpc_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *RpcRemoveDSReq) GetDsID() string {
@@ -384,7 +290,7 @@ type RpcRemoveDSResp struct {
 func (x *RpcRemoveDSResp) Reset() {
 	*x = RpcRemoveDSResp{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_server_rpc_proto_msgTypes[6]
+		mi := &file_server_rpc_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -397,7 +303,7 @@ func (x *RpcRemoveDSResp) String() string {
 func (*RpcRemoveDSResp) ProtoMessage() {}
 
 func (x *RpcRemoveDSResp) ProtoReflect() protoreflect.Message {
-	mi := &file_server_rpc_proto_msgTypes[6]
+	mi := &file_server_rpc_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -410,7 +316,7 @@ func (x *RpcRemoveDSResp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RpcRemoveDSResp.ProtoReflect.Descriptor instead.
 func (*RpcRemoveDSResp) Descriptor() ([]byte, []int) {
-	return file_server_rpc_proto_rawDescGZIP(), []int{6}
+	return file_server_rpc_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *RpcRemoveDSResp) GetHeader() *RpcHeader {
@@ -420,19 +326,111 @@ func (x *RpcRemoveDSResp) GetHeader() *RpcHeader {
 	return nil
 }
 
-type RpcCreateDSResult struct {
+type StreamClientEvent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	CEvent *anypb.Any `protobuf:"bytes,1,opt,name=CEvent,proto3" json:"CEvent,omitempty"`
+}
+
+func (x *StreamClientEvent) Reset() {
+	*x = StreamClientEvent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_server_rpc_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StreamClientEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamClientEvent) ProtoMessage() {}
+
+func (x *StreamClientEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_server_rpc_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamClientEvent.ProtoReflect.Descriptor instead.
+func (*StreamClientEvent) Descriptor() ([]byte, []int) {
+	return file_server_rpc_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StreamClientEvent) GetCEvent() *anypb.Any {
+	if x != nil {
+		return x.CEvent
+	}
+	return nil
+}
+
+type StreamServerEvent struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	SEvent *anypb.Any `protobuf:"bytes,1,opt,name=SEvent,proto3" json:"SEvent,omitempty"`
+}
+
+func (x *StreamServerEvent) Reset() {
+	*x = StreamServerEvent{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_server_rpc_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *StreamServerEvent) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamServerEvent) ProtoMessage() {}
+
+func (x *StreamServerEvent) ProtoReflect() protoreflect.Message {
+	mi := &file_server_rpc_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamServerEvent.ProtoReflect.Descriptor instead.
+func (*StreamServerEvent) Descriptor() ([]byte, []int) {
+	return file_server_rpc_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *StreamServerEvent) GetSEvent() *anypb.Any {
+	if x != nil {
+		return x.SEvent
+	}
+	return nil
+}
+
+type StreamCreateDS struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	DsID       string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
-	TeamID     string `protobuf:"bytes,2,opt,name=teamID,proto3" json:"teamID,omitempty"`
 	RealmCfgID string `protobuf:"bytes,3,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
-	DsAddr     string `protobuf:"bytes,4,opt,name=dsAddr,proto3" json:"dsAddr,omitempty"`
 }
 
-func (x *RpcCreateDSResult) Reset() {
-	*x = RpcCreateDSResult{}
+func (x *StreamCreateDS) Reset() {
+	*x = StreamCreateDS{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_server_rpc_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -440,13 +438,13 @@ func (x *RpcCreateDSResult) Reset() {
 	}
 }
 
-func (x *RpcCreateDSResult) String() string {
+func (x *StreamCreateDS) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RpcCreateDSResult) ProtoMessage() {}
+func (*StreamCreateDS) ProtoMessage() {}
 
-func (x *RpcCreateDSResult) ProtoReflect() protoreflect.Message {
+func (x *StreamCreateDS) ProtoReflect() protoreflect.Message {
 	mi := &file_server_rpc_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -458,51 +456,37 @@ func (x *RpcCreateDSResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RpcCreateDSResult.ProtoReflect.Descriptor instead.
-func (*RpcCreateDSResult) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamCreateDS.ProtoReflect.Descriptor instead.
+func (*StreamCreateDS) Descriptor() ([]byte, []int) {
 	return file_server_rpc_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *RpcCreateDSResult) GetDsID() string {
+func (x *StreamCreateDS) GetDsID() string {
 	if x != nil {
 		return x.DsID
 	}
 	return ""
 }
 
-func (x *RpcCreateDSResult) GetTeamID() string {
-	if x != nil {
-		return x.TeamID
-	}
-	return ""
-}
-
-func (x *RpcCreateDSResult) GetRealmCfgID() string {
+func (x *StreamCreateDS) GetRealmCfgID() string {
 	if x != nil {
 		return x.RealmCfgID
 	}
 	return ""
 }
 
-func (x *RpcCreateDSResult) GetDsAddr() string {
-	if x != nil {
-		return x.DsAddr
-	}
-	return ""
-}
-
-type RpcCreateDSInfo struct {
+type StreamCreateDSResult struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
 	DsID       string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
-	TeamID     string `protobuf:"bytes,2,opt,name=teamID,proto3" json:"teamID,omitempty"`
-	RealmCfgID string `protobuf:"bytes,3,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
+	RealmCfgID string `protobuf:"bytes,2,opt,name=realmCfgID,proto3" json:"realmCfgID,omitempty"` //
+	DsAddr     string `protobuf:"bytes,3,opt,name=dsAddr,proto3" json:"dsAddr,omitempty"`
 }
 
-func (x *RpcCreateDSInfo) Reset() {
-	*x = RpcCreateDSInfo{}
+func (x *StreamCreateDSResult) Reset() {
+	*x = StreamCreateDSResult{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_server_rpc_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -510,13 +494,13 @@ func (x *RpcCreateDSInfo) Reset() {
 	}
 }
 
-func (x *RpcCreateDSInfo) String() string {
+func (x *StreamCreateDSResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RpcCreateDSInfo) ProtoMessage() {}
+func (*StreamCreateDSResult) ProtoMessage() {}
 
-func (x *RpcCreateDSInfo) ProtoReflect() protoreflect.Message {
+func (x *StreamCreateDSResult) ProtoReflect() protoreflect.Message {
 	mi := &file_server_rpc_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -528,42 +512,42 @@ func (x *RpcCreateDSInfo) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RpcCreateDSInfo.ProtoReflect.Descriptor instead.
-func (*RpcCreateDSInfo) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamCreateDSResult.ProtoReflect.Descriptor instead.
+func (*StreamCreateDSResult) Descriptor() ([]byte, []int) {
 	return file_server_rpc_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *RpcCreateDSInfo) GetDsID() string {
+func (x *StreamCreateDSResult) GetDsID() string {
 	if x != nil {
 		return x.DsID
 	}
 	return ""
 }
 
-func (x *RpcCreateDSInfo) GetTeamID() string {
-	if x != nil {
-		return x.TeamID
-	}
-	return ""
-}
-
-func (x *RpcCreateDSInfo) GetRealmCfgID() string {
+func (x *StreamCreateDSResult) GetRealmCfgID() string {
 	if x != nil {
 		return x.RealmCfgID
 	}
 	return ""
 }
 
-type RpcJoinDSResult struct {
+func (x *StreamCreateDSResult) GetDsAddr() string {
+	if x != nil {
+		return x.DsAddr
+	}
+	return ""
+}
+
+type StreamRemoveDS struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	TeamID string `protobuf:"bytes,1,opt,name=teamID,proto3" json:"teamID,omitempty"` //
+	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
 }
 
-func (x *RpcJoinDSResult) Reset() {
-	*x = RpcJoinDSResult{}
+func (x *StreamRemoveDS) Reset() {
+	*x = StreamRemoveDS{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_server_rpc_proto_msgTypes[9]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -571,13 +555,13 @@ func (x *RpcJoinDSResult) Reset() {
 	}
 }
 
-func (x *RpcJoinDSResult) String() string {
+func (x *StreamRemoveDS) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RpcJoinDSResult) ProtoMessage() {}
+func (*StreamRemoveDS) ProtoMessage() {}
 
-func (x *RpcJoinDSResult) ProtoReflect() protoreflect.Message {
+func (x *StreamRemoveDS) ProtoReflect() protoreflect.Message {
 	mi := &file_server_rpc_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -589,26 +573,28 @@ func (x *RpcJoinDSResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RpcJoinDSResult.ProtoReflect.Descriptor instead.
-func (*RpcJoinDSResult) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamRemoveDS.ProtoReflect.Descriptor instead.
+func (*StreamRemoveDS) Descriptor() ([]byte, []int) {
 	return file_server_rpc_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *RpcJoinDSResult) GetTeamID() string {
+func (x *StreamRemoveDS) GetDsID() string {
 	if x != nil {
-		return x.TeamID
+		return x.DsID
 	}
 	return ""
 }
 
-type RpcJoinDSInfo struct {
+type StreamRemoveDSResult struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
+
+	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
 }
 
-func (x *RpcJoinDSInfo) Reset() {
-	*x = RpcJoinDSInfo{}
+func (x *StreamRemoveDSResult) Reset() {
+	*x = StreamRemoveDSResult{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_server_rpc_proto_msgTypes[10]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -616,13 +602,13 @@ func (x *RpcJoinDSInfo) Reset() {
 	}
 }
 
-func (x *RpcJoinDSInfo) String() string {
+func (x *StreamRemoveDSResult) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RpcJoinDSInfo) ProtoMessage() {}
+func (*StreamRemoveDSResult) ProtoMessage() {}
 
-func (x *RpcJoinDSInfo) ProtoReflect() protoreflect.Message {
+func (x *StreamRemoveDSResult) ProtoReflect() protoreflect.Message {
 	mi := &file_server_rpc_proto_msgTypes[10]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -634,9 +620,16 @@ func (x *RpcJoinDSInfo) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RpcJoinDSInfo.ProtoReflect.Descriptor instead.
-func (*RpcJoinDSInfo) Descriptor() ([]byte, []int) {
+// Deprecated: Use StreamRemoveDSResult.ProtoReflect.Descriptor instead.
+func (*StreamRemoveDSResult) Descriptor() ([]byte, []int) {
 	return file_server_rpc_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *StreamRemoveDSResult) GetDsID() string {
+	if x != nil {
+		return x.DsID
+	}
+	return ""
 }
 
 var File_server_rpc_proto protoreflect.FileDescriptor
@@ -652,7 +645,23 @@ var file_server_rpc_proto_rawDesc = []byte{
 	0x72, 0x72, 0x6d, 0x73, 0x67, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x65, 0x72, 0x72,
 	0x6d, 0x73, 0x67, 0x22, 0x28, 0x0a, 0x0b, 0x52, 0x6f, 0x6f, 0x6d, 0x45, 0x72, 0x72, 0x45, 0x6e,
 	0x75, 0x6d, 0x12, 0x06, 0x0a, 0x02, 0x4f, 0x4b, 0x10, 0x00, 0x12, 0x11, 0x0a, 0x0d, 0x52, 0x65,
-	0x71, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x10, 0x01, 0x22, 0x41, 0x0a,
+	0x71, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x45, 0x72, 0x72, 0x6f, 0x72, 0x10, 0x01, 0x22, 0x30, 0x0a,
+	0x0e, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65, 0x71, 0x12,
+	0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x22,
+	0x6c, 0x0a, 0x0f, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65,
+	0x73, 0x70, 0x12, 0x25, 0x0a, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x48, 0x65, 0x61, 0x64, 0x65,
+	0x72, 0x52, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49,
+	0x44, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x12, 0x1e, 0x0a,
+	0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x22, 0x24, 0x0a,
+	0x0e, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x71, 0x12,
+	0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64,
+	0x73, 0x49, 0x44, 0x22, 0x38, 0x0a, 0x0f, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65,
+	0x44, 0x53, 0x52, 0x65, 0x73, 0x70, 0x12, 0x25, 0x0a, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x48,
+	0x65, 0x61, 0x64, 0x65, 0x72, 0x52, 0x06, 0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x22, 0x41, 0x0a,
 	0x11, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x76, 0x65,
 	0x6e, 0x74, 0x12, 0x2c, 0x0a, 0x06, 0x43, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74,
@@ -661,54 +670,36 @@ var file_server_rpc_proto_rawDesc = []byte{
 	0x45, 0x76, 0x65, 0x6e, 0x74, 0x12, 0x2c, 0x0a, 0x06, 0x53, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x18,
 	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x14, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70,
 	0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x41, 0x6e, 0x79, 0x52, 0x06, 0x53, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x22, 0x44, 0x0a, 0x0e, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
-	0x44, 0x53, 0x52, 0x65, 0x71, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66,
-	0x67, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d,
-	0x43, 0x66, 0x67, 0x49, 0x44, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x22, 0x38, 0x0a, 0x0f, 0x52, 0x70, 0x63,
-	0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x70, 0x12, 0x25, 0x0a, 0x06,
-	0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x70,
-	0x62, 0x2e, 0x52, 0x70, 0x63, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x52, 0x06, 0x68, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x22, 0x44, 0x0a, 0x0e, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65,
-	0x44, 0x53, 0x52, 0x65, 0x71, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66,
-	0x67, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d,
-	0x43, 0x66, 0x67, 0x49, 0x44, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x22, 0x38, 0x0a, 0x0f, 0x52, 0x70, 0x63,
-	0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x70, 0x12, 0x25, 0x0a, 0x06,
-	0x68, 0x65, 0x61, 0x64, 0x65, 0x72, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0d, 0x2e, 0x70,
-	0x62, 0x2e, 0x52, 0x70, 0x63, 0x48, 0x65, 0x61, 0x64, 0x65, 0x72, 0x52, 0x06, 0x68, 0x65, 0x61,
-	0x64, 0x65, 0x72, 0x22, 0x77, 0x0a, 0x11, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
-	0x44, 0x53, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44,
-	0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x12, 0x16, 0x0a, 0x06,
-	0x74, 0x65, 0x61, 0x6d, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x65,
-	0x61, 0x6d, 0x49, 0x44, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67,
-	0x49, 0x44, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43,
-	0x66, 0x67, 0x49, 0x44, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x73, 0x41, 0x64, 0x64, 0x72, 0x18, 0x04,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x73, 0x41, 0x64, 0x64, 0x72, 0x22, 0x5d, 0x0a, 0x0f,
-	0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x49, 0x6e, 0x66, 0x6f, 0x12,
+	0x65, 0x6e, 0x74, 0x22, 0x44, 0x0a, 0x0e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x43, 0x72, 0x65,
+	0x61, 0x74, 0x65, 0x44, 0x53, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61,
+	0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x72,
+	0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x22, 0x62, 0x0a, 0x14, 0x53, 0x74, 0x72,
+	0x65, 0x61, 0x6d, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x75, 0x6c,
+	0x74, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x04, 0x64, 0x73, 0x49, 0x44, 0x12, 0x1e, 0x0a, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66,
+	0x67, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d,
+	0x43, 0x66, 0x67, 0x49, 0x44, 0x12, 0x16, 0x0a, 0x06, 0x64, 0x73, 0x41, 0x64, 0x64, 0x72, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x64, 0x73, 0x41, 0x64, 0x64, 0x72, 0x22, 0x24, 0x0a,
+	0x0e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x12,
 	0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64,
-	0x73, 0x49, 0x44, 0x12, 0x16, 0x0a, 0x06, 0x74, 0x65, 0x61, 0x6d, 0x49, 0x44, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x65, 0x61, 0x6d, 0x49, 0x44, 0x12, 0x1e, 0x0a, 0x0a, 0x72,
-	0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x0a, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x43, 0x66, 0x67, 0x49, 0x44, 0x22, 0x29, 0x0a, 0x0f, 0x52,
-	0x70, 0x63, 0x4a, 0x6f, 0x69, 0x6e, 0x44, 0x53, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x16,
-	0x0a, 0x06, 0x74, 0x65, 0x61, 0x6d, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06,
-	0x74, 0x65, 0x61, 0x6d, 0x49, 0x44, 0x22, 0x0f, 0x0a, 0x0d, 0x52, 0x70, 0x63, 0x4a, 0x6f, 0x69,
-	0x6e, 0x44, 0x53, 0x49, 0x6e, 0x66, 0x6f, 0x32, 0x79, 0x0a, 0x09, 0x47, 0x61, 0x6d, 0x65, 0x44,
-	0x73, 0x63, 0x44, 0x53, 0x12, 0x35, 0x0a, 0x08, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53,
-	0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44,
-	0x53, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65,
-	0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x70, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x08, 0x52,
-	0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63,
-	0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e, 0x70, 0x62,
-	0x2e, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x70,
-	0x22, 0x00, 0x32, 0x50, 0x0a, 0x09, 0x44, 0x73, 0x61, 0x44, 0x73, 0x63, 0x41, 0x44, 0x53, 0x12,
-	0x43, 0x0a, 0x0d, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x43, 0x6c, 0x69, 0x65,
-	0x6e, 0x74, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x72,
-	0x65, 0x61, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x00,
-	0x28, 0x01, 0x30, 0x01, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72,
-	0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x49, 0x44, 0x22, 0x2a, 0x0a, 0x14, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x52, 0x65, 0x6d,
+	0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x64,
+	0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x32,
+	0x7a, 0x0a, 0x0a, 0x52, 0x70, 0x63, 0x47, 0x61, 0x6d, 0x65, 0x44, 0x73, 0x63, 0x12, 0x35, 0x0a,
+	0x08, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x52,
+	0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e,
+	0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x52, 0x65,
+	0x73, 0x70, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x08, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44, 0x53,
+	0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x44,
+	0x53, 0x52, 0x65, 0x71, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x70, 0x63, 0x52, 0x65, 0x6d,
+	0x6f, 0x76, 0x65, 0x44, 0x53, 0x52, 0x65, 0x73, 0x70, 0x22, 0x00, 0x32, 0x53, 0x0a, 0x0c, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x44, 0x73, 0x63, 0x44, 0x53, 0x41, 0x12, 0x43, 0x0a, 0x0d, 0x53,
+	0x74, 0x72, 0x65, 0x61, 0x6d, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x12, 0x15, 0x2e, 0x70,
+	0x62, 0x2e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x43, 0x6c, 0x69, 0x65, 0x6e, 0x74, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x72, 0x65, 0x61, 0x6d, 0x53,
+	0x65, 0x72, 0x76, 0x65, 0x72, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x22, 0x00, 0x28, 0x01, 0x30, 0x01,
+	0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -726,32 +717,32 @@ func file_server_rpc_proto_rawDescGZIP() []byte {
 var file_server_rpc_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_server_rpc_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_server_rpc_proto_goTypes = []interface{}{
-	(RpcHeader_RoomErrEnum)(0), // 0: pb.RpcHeader.RoomErrEnum
-	(*RpcHeader)(nil),          // 1: pb.RpcHeader
-	(*StreamClientEvent)(nil),  // 2: pb.StreamClientEvent
-	(*StreamServerEvent)(nil),  // 3: pb.StreamServerEvent
-	(*RpcCreateDSReq)(nil),     // 4: pb.RpcCreateDSReq
-	(*RpcCreateDSResp)(nil),    // 5: pb.RpcCreateDSResp
-	(*RpcRemoveDSReq)(nil),     // 6: pb.RpcRemoveDSReq
-	(*RpcRemoveDSResp)(nil),    // 7: pb.RpcRemoveDSResp
-	(*RpcCreateDSResult)(nil),  // 8: pb.RpcCreateDSResult
-	(*RpcCreateDSInfo)(nil),    // 9: pb.RpcCreateDSInfo
-	(*RpcJoinDSResult)(nil),    // 10: pb.RpcJoinDSResult
-	(*RpcJoinDSInfo)(nil),      // 11: pb.RpcJoinDSInfo
-	(*anypb.Any)(nil),          // 12: google.protobuf.Any
+	(RpcHeader_RoomErrEnum)(0),   // 0: pb.RpcHeader.RoomErrEnum
+	(*RpcHeader)(nil),            // 1: pb.RpcHeader
+	(*RpcCreateDSReq)(nil),       // 2: pb.RpcCreateDSReq
+	(*RpcCreateDSResp)(nil),      // 3: pb.RpcCreateDSResp
+	(*RpcRemoveDSReq)(nil),       // 4: pb.RpcRemoveDSReq
+	(*RpcRemoveDSResp)(nil),      // 5: pb.RpcRemoveDSResp
+	(*StreamClientEvent)(nil),    // 6: pb.StreamClientEvent
+	(*StreamServerEvent)(nil),    // 7: pb.StreamServerEvent
+	(*StreamCreateDS)(nil),       // 8: pb.StreamCreateDS
+	(*StreamCreateDSResult)(nil), // 9: pb.StreamCreateDSResult
+	(*StreamRemoveDS)(nil),       // 10: pb.StreamRemoveDS
+	(*StreamRemoveDSResult)(nil), // 11: pb.StreamRemoveDSResult
+	(*anypb.Any)(nil),            // 12: google.protobuf.Any
 }
 var file_server_rpc_proto_depIdxs = []int32{
 	0,  // 0: pb.RpcHeader.ret:type_name -> pb.RpcHeader.RoomErrEnum
-	12, // 1: pb.StreamClientEvent.CEvent:type_name -> google.protobuf.Any
-	12, // 2: pb.StreamServerEvent.SEvent:type_name -> google.protobuf.Any
-	1,  // 3: pb.RpcCreateDSResp.header:type_name -> pb.RpcHeader
-	1,  // 4: pb.RpcRemoveDSResp.header:type_name -> pb.RpcHeader
-	4,  // 5: pb.GameDscDS.CreateDS:input_type -> pb.RpcCreateDSReq
-	6,  // 6: pb.GameDscDS.RemoveDS:input_type -> pb.RpcRemoveDSReq
-	2,  // 7: pb.DsaDscADS.StreamService:input_type -> pb.StreamClientEvent
-	5,  // 8: pb.GameDscDS.CreateDS:output_type -> pb.RpcCreateDSResp
-	7,  // 9: pb.GameDscDS.RemoveDS:output_type -> pb.RpcRemoveDSResp
-	3,  // 10: pb.DsaDscADS.StreamService:output_type -> pb.StreamServerEvent
+	1,  // 1: pb.RpcCreateDSResp.header:type_name -> pb.RpcHeader
+	1,  // 2: pb.RpcRemoveDSResp.header:type_name -> pb.RpcHeader
+	12, // 3: pb.StreamClientEvent.CEvent:type_name -> google.protobuf.Any
+	12, // 4: pb.StreamServerEvent.SEvent:type_name -> google.protobuf.Any
+	2,  // 5: pb.RpcGameDsc.CreateDS:input_type -> pb.RpcCreateDSReq
+	4,  // 6: pb.RpcGameDsc.RemoveDS:input_type -> pb.RpcRemoveDSReq
+	6,  // 7: pb.StreamDscDSA.StreamService:input_type -> pb.StreamClientEvent
+	3,  // 8: pb.RpcGameDsc.CreateDS:output_type -> pb.RpcCreateDSResp
+	5,  // 9: pb.RpcGameDsc.RemoveDS:output_type -> pb.RpcRemoveDSResp
+	7,  // 10: pb.StreamDscDSA.StreamService:output_type -> pb.StreamServerEvent
 	8,  // [8:11] is the sub-list for method output_type
 	5,  // [5:8] is the sub-list for method input_type
 	5,  // [5:5] is the sub-list for extension type_name
@@ -778,30 +769,6 @@ func file_server_rpc_proto_init() {
 			}
 		}
 		file_server_rpc_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StreamClientEvent); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_server_rpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*StreamServerEvent); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_server_rpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RpcCreateDSReq); i {
 			case 0:
 				return &v.state
@@ -813,7 +780,7 @@ func file_server_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_server_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_server_rpc_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RpcCreateDSResp); i {
 			case 0:
 				return &v.state
@@ -825,7 +792,7 @@ func file_server_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_server_rpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_server_rpc_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RpcRemoveDSReq); i {
 			case 0:
 				return &v.state
@@ -837,7 +804,7 @@ func file_server_rpc_proto_init() {
 				return nil
 			}
 		}
-		file_server_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_server_rpc_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*RpcRemoveDSResp); i {
 			case 0:
 				return &v.state
@@ -849,8 +816,32 @@ func file_server_rpc_proto_init() {
 				return nil
 			}
 		}
+		file_server_rpc_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StreamClientEvent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_server_rpc_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*StreamServerEvent); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_server_rpc_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RpcCreateDSResult); i {
+			switch v := v.(*StreamCreateDS); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -862,7 +853,7 @@ func file_server_rpc_proto_init() {
 			}
 		}
 		file_server_rpc_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RpcCreateDSInfo); i {
+			switch v := v.(*StreamCreateDSResult); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -874,7 +865,7 @@ func file_server_rpc_proto_init() {
 			}
 		}
 		file_server_rpc_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RpcJoinDSResult); i {
+			switch v := v.(*StreamRemoveDS); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -886,7 +877,7 @@ func file_server_rpc_proto_init() {
 			}
 		}
 		file_server_rpc_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RpcJoinDSInfo); i {
+			switch v := v.(*StreamRemoveDSResult); i {
 			case 0:
 				return &v.state
 			case 1:

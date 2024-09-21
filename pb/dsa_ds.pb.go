@@ -24,18 +24,15 @@ type DSA2DS_MsgID_MsgID int32
 
 const (
 	DSA2DS_MsgID_QueryDsStatus DSA2DS_MsgID_MsgID = 0
-	DSA2DS_MsgID_CreateDS      DSA2DS_MsgID_MsgID = 1 //创建DS
 )
 
 // Enum value maps for DSA2DS_MsgID_MsgID.
 var (
 	DSA2DS_MsgID_MsgID_name = map[int32]string{
 		0: "QueryDsStatus",
-		1: "CreateDS",
 	}
 	DSA2DS_MsgID_MsgID_value = map[string]int32{
 		"QueryDsStatus": 0,
-		"CreateDS":      1,
 	}
 )
 
@@ -70,24 +67,21 @@ type DS2DSA_MsgID_MsgID int32
 
 const (
 	DS2DSA_MsgID_DSUpdateState DS2DSA_MsgID_MsgID = 0 //当前游戏状态
-	DS2DSA_MsgID_DSLoadOK      DS2DSA_MsgID_MsgID = 1 //进程启动成功
+	DS2DSA_MsgID_DSCreateOK    DS2DSA_MsgID_MsgID = 1 //DS进程启动成功
 	DS2DSA_MsgID_DSGameEnd     DS2DSA_MsgID_MsgID = 2 //游戏结束，可以回收进程
-	DS2DSA_MsgID_DSDSCreateOk  DS2DSA_MsgID_MsgID = 3 //DS创建完成
 )
 
 // Enum value maps for DS2DSA_MsgID_MsgID.
 var (
 	DS2DSA_MsgID_MsgID_name = map[int32]string{
 		0: "DSUpdateState",
-		1: "DSLoadOK",
+		1: "DSCreateOK",
 		2: "DSGameEnd",
-		3: "DSDSCreateOk",
 	}
 	DS2DSA_MsgID_MsgID_value = map[string]int32{
 		"DSUpdateState": 0,
-		"DSLoadOK":      1,
+		"DSCreateOK":    1,
 		"DSGameEnd":     2,
-		"DSDSCreateOk":  3,
 	}
 )
 
@@ -115,7 +109,7 @@ func (x DS2DSA_MsgID_MsgID) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use DS2DSA_MsgID_MsgID.Descriptor instead.
 func (DS2DSA_MsgID_MsgID) EnumDescriptor() ([]byte, []int) {
-	return file_dsa_ds_proto_rawDescGZIP(), []int{3, 0}
+	return file_dsa_ds_proto_rawDescGZIP(), []int{2, 0}
 }
 
 //
@@ -198,55 +192,6 @@ func (*QueryDSStatusReq) Descriptor() ([]byte, []int) {
 	return file_dsa_ds_proto_rawDescGZIP(), []int{1}
 }
 
-//*
-//DSA2DS_MsgIDCreateDS
-type DSCreateReq struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
-}
-
-func (x *DSCreateReq) Reset() {
-	*x = DSCreateReq{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_dsa_ds_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DSCreateReq) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DSCreateReq) ProtoMessage() {}
-
-func (x *DSCreateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_dsa_ds_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DSCreateReq.ProtoReflect.Descriptor instead.
-func (*DSCreateReq) Descriptor() ([]byte, []int) {
-	return file_dsa_ds_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *DSCreateReq) GetDsID() string {
-	if x != nil {
-		return x.DsID
-	}
-	return ""
-}
-
 //
 //ds to dsa id
 type DS2DSA_MsgID struct {
@@ -258,7 +203,7 @@ type DS2DSA_MsgID struct {
 func (x *DS2DSA_MsgID) Reset() {
 	*x = DS2DSA_MsgID{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_dsa_ds_proto_msgTypes[3]
+		mi := &file_dsa_ds_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -271,7 +216,7 @@ func (x *DS2DSA_MsgID) String() string {
 func (*DS2DSA_MsgID) ProtoMessage() {}
 
 func (x *DS2DSA_MsgID) ProtoReflect() protoreflect.Message {
-	mi := &file_dsa_ds_proto_msgTypes[3]
+	mi := &file_dsa_ds_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -284,21 +229,78 @@ func (x *DS2DSA_MsgID) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DS2DSA_MsgID.ProtoReflect.Descriptor instead.
 func (*DS2DSA_MsgID) Descriptor() ([]byte, []int) {
-	return file_dsa_ds_proto_rawDescGZIP(), []int{3}
+	return file_dsa_ds_proto_rawDescGZIP(), []int{2}
 }
 
 //*
-//DS2DSA_MsgIDDSLoadOK
-type DSLoadOKReq struct {
+//DS2DSA_MsgID_CreateOK
+type DS2DSA_CreateOK struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"` //DS id
+	DsID    string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"` //DS id
+	RealmID string `protobuf:"bytes,2,opt,name=realmID,proto3" json:"realmID,omitempty"`
 }
 
-func (x *DSLoadOKReq) Reset() {
-	*x = DSLoadOKReq{}
+func (x *DS2DSA_CreateOK) Reset() {
+	*x = DS2DSA_CreateOK{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_dsa_ds_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *DS2DSA_CreateOK) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DS2DSA_CreateOK) ProtoMessage() {}
+
+func (x *DS2DSA_CreateOK) ProtoReflect() protoreflect.Message {
+	mi := &file_dsa_ds_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DS2DSA_CreateOK.ProtoReflect.Descriptor instead.
+func (*DS2DSA_CreateOK) Descriptor() ([]byte, []int) {
+	return file_dsa_ds_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *DS2DSA_CreateOK) GetDsID() string {
+	if x != nil {
+		return x.DsID
+	}
+	return ""
+}
+
+func (x *DS2DSA_CreateOK) GetRealmID() string {
+	if x != nil {
+		return x.RealmID
+	}
+	return ""
+}
+
+//*
+//DS2DSA_MsgID_DSGameEnd
+type DS2DSA_GameEndReq struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
+}
+
+func (x *DS2DSA_GameEndReq) Reset() {
+	*x = DS2DSA_GameEndReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_dsa_ds_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -306,13 +308,13 @@ func (x *DSLoadOKReq) Reset() {
 	}
 }
 
-func (x *DSLoadOKReq) String() string {
+func (x *DS2DSA_GameEndReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DSLoadOKReq) ProtoMessage() {}
+func (*DS2DSA_GameEndReq) ProtoMessage() {}
 
-func (x *DSLoadOKReq) ProtoReflect() protoreflect.Message {
+func (x *DS2DSA_GameEndReq) ProtoReflect() protoreflect.Message {
 	mi := &file_dsa_ds_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -324,12 +326,12 @@ func (x *DSLoadOKReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DSLoadOKReq.ProtoReflect.Descriptor instead.
-func (*DSLoadOKReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use DS2DSA_GameEndReq.ProtoReflect.Descriptor instead.
+func (*DS2DSA_GameEndReq) Descriptor() ([]byte, []int) {
 	return file_dsa_ds_proto_rawDescGZIP(), []int{4}
 }
 
-func (x *DSLoadOKReq) GetDsID() string {
+func (x *DS2DSA_GameEndReq) GetDsID() string {
 	if x != nil {
 		return x.DsID
 	}
@@ -337,17 +339,15 @@ func (x *DSLoadOKReq) GetDsID() string {
 }
 
 //*
-//DS2DSA_MsgIDDSGameEnd
-type DSGameEndReq struct {
+//DS2DSA_MsgID_DSUpdateState
+type DS2DSA_UpdateStateReq struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
-	DsID string `protobuf:"bytes,1,opt,name=dsID,proto3" json:"dsID,omitempty"`
 }
 
-func (x *DSGameEndReq) Reset() {
-	*x = DSGameEndReq{}
+func (x *DS2DSA_UpdateStateReq) Reset() {
+	*x = DS2DSA_UpdateStateReq{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_dsa_ds_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -355,13 +355,13 @@ func (x *DSGameEndReq) Reset() {
 	}
 }
 
-func (x *DSGameEndReq) String() string {
+func (x *DS2DSA_UpdateStateReq) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*DSGameEndReq) ProtoMessage() {}
+func (*DS2DSA_UpdateStateReq) ProtoMessage() {}
 
-func (x *DSGameEndReq) ProtoReflect() protoreflect.Message {
+func (x *DS2DSA_UpdateStateReq) ProtoReflect() protoreflect.Message {
 	mi := &file_dsa_ds_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -373,143 +373,33 @@ func (x *DSGameEndReq) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use DSGameEndReq.ProtoReflect.Descriptor instead.
-func (*DSGameEndReq) Descriptor() ([]byte, []int) {
+// Deprecated: Use DS2DSA_UpdateStateReq.ProtoReflect.Descriptor instead.
+func (*DS2DSA_UpdateStateReq) Descriptor() ([]byte, []int) {
 	return file_dsa_ds_proto_rawDescGZIP(), []int{5}
-}
-
-func (x *DSGameEndReq) GetDsID() string {
-	if x != nil {
-		return x.DsID
-	}
-	return ""
-}
-
-//*
-//DS2DSA_MsgIDDSLoadOK
-type DSUpdateStateReq struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-}
-
-func (x *DSUpdateStateReq) Reset() {
-	*x = DSUpdateStateReq{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_dsa_ds_proto_msgTypes[6]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DSUpdateStateReq) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DSUpdateStateReq) ProtoMessage() {}
-
-func (x *DSUpdateStateReq) ProtoReflect() protoreflect.Message {
-	mi := &file_dsa_ds_proto_msgTypes[6]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DSUpdateStateReq.ProtoReflect.Descriptor instead.
-func (*DSUpdateStateReq) Descriptor() ([]byte, []int) {
-	return file_dsa_ds_proto_rawDescGZIP(), []int{6}
-}
-
-//*
-//DS2DSA_MsgIDDSDSCreateOk
-type DSCreateResp struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	RealmID string `protobuf:"bytes,1,opt,name=realmID,proto3" json:"realmID,omitempty"`
-	DsID    string `protobuf:"bytes,2,opt,name=dsID,proto3" json:"dsID,omitempty"`
-}
-
-func (x *DSCreateResp) Reset() {
-	*x = DSCreateResp{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_dsa_ds_proto_msgTypes[7]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *DSCreateResp) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*DSCreateResp) ProtoMessage() {}
-
-func (x *DSCreateResp) ProtoReflect() protoreflect.Message {
-	mi := &file_dsa_ds_proto_msgTypes[7]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use DSCreateResp.ProtoReflect.Descriptor instead.
-func (*DSCreateResp) Descriptor() ([]byte, []int) {
-	return file_dsa_ds_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *DSCreateResp) GetRealmID() string {
-	if x != nil {
-		return x.RealmID
-	}
-	return ""
-}
-
-func (x *DSCreateResp) GetDsID() string {
-	if x != nil {
-		return x.DsID
-	}
-	return ""
 }
 
 var File_dsa_ds_proto protoreflect.FileDescriptor
 
 var file_dsa_ds_proto_rawDesc = []byte{
 	0x0a, 0x0c, 0x64, 0x73, 0x61, 0x5f, 0x64, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x02,
-	0x70, 0x62, 0x22, 0x38, 0x0a, 0x0c, 0x44, 0x53, 0x41, 0x32, 0x44, 0x53, 0x5f, 0x4d, 0x73, 0x67,
-	0x49, 0x44, 0x22, 0x28, 0x0a, 0x05, 0x4d, 0x73, 0x67, 0x49, 0x44, 0x12, 0x11, 0x0a, 0x0d, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x44, 0x73, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x10, 0x00, 0x12, 0x0c,
-	0x0a, 0x08, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x44, 0x53, 0x10, 0x01, 0x22, 0x12, 0x0a, 0x10,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x53, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52, 0x65, 0x71,
-	0x22, 0x21, 0x0a, 0x0b, 0x44, 0x53, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x12,
-	0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64,
-	0x73, 0x49, 0x44, 0x22, 0x59, 0x0a, 0x0c, 0x44, 0x53, 0x32, 0x44, 0x53, 0x41, 0x5f, 0x4d, 0x73,
-	0x67, 0x49, 0x44, 0x22, 0x49, 0x0a, 0x05, 0x4d, 0x73, 0x67, 0x49, 0x44, 0x12, 0x11, 0x0a, 0x0d,
-	0x44, 0x53, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x10, 0x00, 0x12,
-	0x0c, 0x0a, 0x08, 0x44, 0x53, 0x4c, 0x6f, 0x61, 0x64, 0x4f, 0x4b, 0x10, 0x01, 0x12, 0x0d, 0x0a,
-	0x09, 0x44, 0x53, 0x47, 0x61, 0x6d, 0x65, 0x45, 0x6e, 0x64, 0x10, 0x02, 0x12, 0x10, 0x0a, 0x0c,
-	0x44, 0x53, 0x44, 0x53, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x6b, 0x10, 0x03, 0x22, 0x21,
-	0x0a, 0x0b, 0x44, 0x53, 0x4c, 0x6f, 0x61, 0x64, 0x4f, 0x4b, 0x52, 0x65, 0x71, 0x12, 0x12, 0x0a,
-	0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x64, 0x73, 0x49,
-	0x44, 0x22, 0x22, 0x0a, 0x0c, 0x44, 0x53, 0x47, 0x61, 0x6d, 0x65, 0x45, 0x6e, 0x64, 0x52, 0x65,
-	0x71, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
-	0x04, 0x64, 0x73, 0x49, 0x44, 0x22, 0x12, 0x0a, 0x10, 0x44, 0x53, 0x55, 0x70, 0x64, 0x61, 0x74,
-	0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71, 0x22, 0x3c, 0x0a, 0x0c, 0x44, 0x53, 0x43,
-	0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x65, 0x73, 0x70, 0x12, 0x18, 0x0a, 0x07, 0x72, 0x65, 0x61,
-	0x6c, 0x6d, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x72, 0x65, 0x61, 0x6c,
-	0x6d, 0x49, 0x44, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x70, 0x62, 0x22, 0x2a, 0x0a, 0x0c, 0x44, 0x53, 0x41, 0x32, 0x44, 0x53, 0x5f, 0x4d, 0x73, 0x67,
+	0x49, 0x44, 0x22, 0x1a, 0x0a, 0x05, 0x4d, 0x73, 0x67, 0x49, 0x44, 0x12, 0x11, 0x0a, 0x0d, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x44, 0x73, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x10, 0x00, 0x22, 0x12,
+	0x0a, 0x10, 0x51, 0x75, 0x65, 0x72, 0x79, 0x44, 0x53, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x52,
+	0x65, 0x71, 0x22, 0x49, 0x0a, 0x0c, 0x44, 0x53, 0x32, 0x44, 0x53, 0x41, 0x5f, 0x4d, 0x73, 0x67,
+	0x49, 0x44, 0x22, 0x39, 0x0a, 0x05, 0x4d, 0x73, 0x67, 0x49, 0x44, 0x12, 0x11, 0x0a, 0x0d, 0x44,
+	0x53, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x10, 0x00, 0x12, 0x0e,
+	0x0a, 0x0a, 0x44, 0x53, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x4b, 0x10, 0x01, 0x12, 0x0d,
+	0x0a, 0x09, 0x44, 0x53, 0x47, 0x61, 0x6d, 0x65, 0x45, 0x6e, 0x64, 0x10, 0x02, 0x22, 0x3f, 0x0a,
+	0x0f, 0x44, 0x53, 0x32, 0x44, 0x53, 0x41, 0x5f, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x4f, 0x4b,
+	0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04,
+	0x64, 0x73, 0x49, 0x44, 0x12, 0x18, 0x0a, 0x07, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x49, 0x44, 0x18,
+	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x72, 0x65, 0x61, 0x6c, 0x6d, 0x49, 0x44, 0x22, 0x27,
+	0x0a, 0x11, 0x44, 0x53, 0x32, 0x44, 0x53, 0x41, 0x5f, 0x47, 0x61, 0x6d, 0x65, 0x45, 0x6e, 0x64,
+	0x52, 0x65, 0x71, 0x12, 0x12, 0x0a, 0x04, 0x64, 0x73, 0x49, 0x44, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x04, 0x64, 0x73, 0x49, 0x44, 0x22, 0x17, 0x0a, 0x15, 0x44, 0x53, 0x32, 0x44, 0x53,
+	0x41, 0x5f, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x71,
+	0x42, 0x06, 0x5a, 0x04, 0x2e, 0x3b, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -525,18 +415,16 @@ func file_dsa_ds_proto_rawDescGZIP() []byte {
 }
 
 var file_dsa_ds_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_dsa_ds_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_dsa_ds_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_dsa_ds_proto_goTypes = []interface{}{
-	(DSA2DS_MsgID_MsgID)(0),  // 0: pb.DSA2DS_MsgID.MsgID
-	(DS2DSA_MsgID_MsgID)(0),  // 1: pb.DS2DSA_MsgID.MsgID
-	(*DSA2DS_MsgID)(nil),     // 2: pb.DSA2DS_MsgID
-	(*QueryDSStatusReq)(nil), // 3: pb.QueryDSStatusReq
-	(*DSCreateReq)(nil),      // 4: pb.DSCreateReq
-	(*DS2DSA_MsgID)(nil),     // 5: pb.DS2DSA_MsgID
-	(*DSLoadOKReq)(nil),      // 6: pb.DSLoadOKReq
-	(*DSGameEndReq)(nil),     // 7: pb.DSGameEndReq
-	(*DSUpdateStateReq)(nil), // 8: pb.DSUpdateStateReq
-	(*DSCreateResp)(nil),     // 9: pb.DSCreateResp
+	(DSA2DS_MsgID_MsgID)(0),       // 0: pb.DSA2DS_MsgID.MsgID
+	(DS2DSA_MsgID_MsgID)(0),       // 1: pb.DS2DSA_MsgID.MsgID
+	(*DSA2DS_MsgID)(nil),          // 2: pb.DSA2DS_MsgID
+	(*QueryDSStatusReq)(nil),      // 3: pb.QueryDSStatusReq
+	(*DS2DSA_MsgID)(nil),          // 4: pb.DS2DSA_MsgID
+	(*DS2DSA_CreateOK)(nil),       // 5: pb.DS2DSA_CreateOK
+	(*DS2DSA_GameEndReq)(nil),     // 6: pb.DS2DSA_GameEndReq
+	(*DS2DSA_UpdateStateReq)(nil), // 7: pb.DS2DSA_UpdateStateReq
 }
 var file_dsa_ds_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -577,18 +465,6 @@ func file_dsa_ds_proto_init() {
 			}
 		}
 		file_dsa_ds_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DSCreateReq); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_dsa_ds_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*DS2DSA_MsgID); i {
 			case 0:
 				return &v.state
@@ -600,8 +476,20 @@ func file_dsa_ds_proto_init() {
 				return nil
 			}
 		}
+		file_dsa_ds_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*DS2DSA_CreateOK); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 		file_dsa_ds_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DSLoadOKReq); i {
+			switch v := v.(*DS2DSA_GameEndReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -613,31 +501,7 @@ func file_dsa_ds_proto_init() {
 			}
 		}
 		file_dsa_ds_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DSGameEndReq); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_dsa_ds_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DSUpdateStateReq); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_dsa_ds_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*DSCreateResp); i {
+			switch v := v.(*DS2DSA_UpdateStateReq); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -655,7 +519,7 @@ func file_dsa_ds_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_dsa_ds_proto_rawDesc,
 			NumEnums:      2,
-			NumMessages:   8,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc"
 )
 
-var dscGameClient pb.GameDscDSClient
+var dscGameClient pb.RpcGameDscClient
 
 func DSCGameGRPCInit(serverAddr string) error {
 	var opts []grpc.DialOption
@@ -24,10 +24,10 @@ func DSCGameGRPCInit(serverAddr string) error {
 			"address": serverAddr,
 		}).Info("connect dsc ok")
 
-	dscGameClient = pb.NewGameDscDSClient(conn)
+	dscGameClient = pb.NewRpcGameDscClient(conn)
 	return nil
 }
 
-func GetRpcClient() pb.GameDscDSClient {
+func GetRpcClient() pb.RpcGameDscClient {
 	return dscGameClient
 }

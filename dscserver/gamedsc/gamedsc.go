@@ -7,7 +7,7 @@ import (
 )
 
 type RPCGameDscServer struct {
-	pb.UnimplementedGameDscDSServer
+	pb.UnimplementedRpcGameDscServer
 }
 
 func (gdServer *RPCGameDscServer) CreateRealm(ctx context.Context, createRealReq *pb.RpcCreateDSReq) (*pb.RpcCreateDSResp, error) {
@@ -25,6 +25,6 @@ func (gdServer *RPCGameDscServer) RemoveRealm(ctx context.Context, req *pb.RpcRe
 	if dsaInfo == nil {
 		return nil, nil
 	}
-	dsaInfo.AddDS(req.RealmCfgID)
+	dsaInfo.AddDS(req.DsID)
 	return nil, nil
 }

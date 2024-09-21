@@ -41,8 +41,8 @@ func (dsaCB *DSAServerCB) OnMsgCB(conn kissnet.IConnection, msg []byte) error {
 	return nil
 }
 func ProcDSMsg(conn kissnet.IConnection, msgID pb.DS2DSA_MsgID_MsgID, msg []byte) error {
-	if msgID == pb.DS2DSA_MsgID_DSLoadOK {
-		err := dsLoadOK(conn, msg)
+	if msgID == pb.DS2DSA_MsgID_DSCreateOK {
+		err := dsCreateOK(conn, msg)
 		return err
 	} else {
 		f, ok := msgMap[msgID]

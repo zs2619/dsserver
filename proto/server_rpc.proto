@@ -12,6 +12,29 @@ message RpcHeader{
 	string       errmsg= 2;
 }
 
+message RpcCreateDSReq{
+	string    realmCfgID = 1;  //
+}
+message RpcCreateDSResp{
+	RpcHeader header     = 1;
+	string    dsID       = 2;
+	string    realmCfgID = 3;  //
+}
+
+message RpcRemoveDSReq{
+	string   dsID    = 1;
+}
+message RpcRemoveDSResp{
+	RpcHeader header   =1;
+}
+
+// game dsc
+service RpcGameDsc {
+  rpc CreateDS (RpcCreateDSReq) returns (RpcCreateDSResp) {}
+  rpc RemoveDS (RpcRemoveDSReq) returns (RpcRemoveDSResp) {}
+}
+
+
 message StreamClientEvent{
    google.protobuf.Any CEvent = 1;
 }
@@ -19,46 +42,22 @@ message StreamClientEvent{
 message StreamServerEvent {
    google.protobuf.Any SEvent = 1;
 }
-
-message RpcCreateDSReq{
-	string    realmCfgID = 1;  //
-	string    dsID       = 2;
+message StreamCreateDS{
+	string   dsID       = 1;
+	string   realmCfgID = 3;  //
 }
-message RpcCreateDSResp{
-	RpcHeader header   =1;
-}
-
-message RpcRemoveDSReq{
-	string    realmCfgID = 1;  //
-	string    dsID       = 2;
-}
-message RpcRemoveDSResp{
-	RpcHeader header   =1;
-}
-
-service GameDscDS {
-  rpc CreateDS (RpcCreateDSReq) returns (RpcCreateDSResp) {}
-  rpc RemoveDS (RpcRemoveDSReq) returns (RpcRemoveDSResp) {}
-}
-
-message RpcCreateDSResult{
+message StreamCreateDSResult{
 	string   dsID         = 1;
-	string   teamID       = 2;
-	string   realmCfgID   = 3;  //
-	string   dsAddr       = 4;
+	string   realmCfgID   = 2;  //
+	string   dsAddr       = 3;
 }
-message RpcCreateDSInfo{
-	string    dsID       = 1;
-	string    teamID     = 2;
-	string    realmCfgID = 3;  //
+message StreamRemoveDS{
+	string   dsID   = 1;
 }
-
-message RpcJoinDSResult{
-	string    teamID = 1;  //
-}
-message RpcJoinDSInfo{
+message StreamRemoveDSResult{
+	string   dsID    = 1;
 }
 
-service DsaDscADS {
+service StreamDscDSA {
   rpc StreamService(stream StreamClientEvent)returns(stream StreamServerEvent){}
 }

@@ -1,11 +1,11 @@
 package main
 
 import (
+	"dsservices/common"
 	"dsservices/gameserver/gameplayer"
 	"dsservices/gameserver/realm"
 	"dsservices/gameserver/team"
 	"dsservices/kissnet"
-	"dsservices/launch"
 	"dsservices/store"
 	"os"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 )
 
 func main() {
-	launch.Init()
+	common.Init()
 	logrus.Info("game server")
 
 	err := store.InitStore()
@@ -60,5 +60,5 @@ func main() {
 	gAcceptor.Run()
 	event.EventLoop()
 	gAcceptor.Close()
-	launch.Finish()
+	common.Finish()
 }

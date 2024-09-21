@@ -20,7 +20,7 @@ type DSAInfo struct {
 	Addr                  string
 	StreamServerEventChan chan *pb.StreamServerEvent
 	DSProcList            []*DSProc
-	stream                pb.DsaDscADS_StreamServiceServer
+	stream                pb.StreamDscDSA_StreamServiceServer
 }
 
 func generateDSID() string {
@@ -29,11 +29,11 @@ func generateDSID() string {
 
 func (dsa *DSAInfo) AddDS(realmCgcID string) {
 	dsID := generateDSID()
-	creatDs := pb.RpcCreateDSReq{DsID: dsID, RealmCfgID: realmCgcID}
+	creatDs := pb.StreamCreateDS{DsID: dsID, RealmCfgID: realmCgcID}
 	dsa.Send2DSA(&creatDs)
 }
-func (dsa *DSAInfo) DelDS(dsID string) {
-	removeDS := pb.RpcRemoveDSReq{DsID: dsID}
+func (dsa *DSAInfo) RemoveDS(dsID string) {
+	removeDS := pb.StreamRemoveDS{DsID: dsID}
 	dsa.Send2DSA(&removeDS)
 }
 
@@ -91,7 +91,7 @@ type DSAMgr struct {
 	DSInfoMap sync.Map
 }
 
-func NewDSAInfo(AgentName, Addr string, stream pb.DsaDscADS_StreamServiceServer) *DSAInfo {
+func NewDSAInfo(AgentName, Addr string, stream pb.StreamDscDSA_StreamServiceServer) *DSAInfo {
 	info := &DSAInfo{
 		StreamServerEventChan: make(chan *pb.StreamServerEvent),
 		stream:                stream,

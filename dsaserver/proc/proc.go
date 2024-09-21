@@ -19,11 +19,8 @@ type ProcInfo struct {
 
 func formatDSArgv(cmdName, dsID, realmCfgID string, port int) []string {
 	argv := []string{cmdName}
-	gameModeName := "ServerGameMode"
-	serverMapLayerName := "FuBen"
-	playerStartName := "PlayerStart_Server_MLFB"
-	portArgv := fmt.Sprintf(config.GameConfig.DSArgv, dsID, port, gameModeName, serverMapLayerName, playerStartName)
-	logrus.Info(argv)
+	portArgv := fmt.Sprintf(config.GameConfig.DSArgv, dsID, port, realmCfgID)
+	logrus.WithFields(logrus.Fields{"argv": argv}).Info("formatDSArgv")
 	argvList := strings.Fields(strings.TrimSpace(portArgv))
 	argv = append(argv, argvList...)
 	return argv

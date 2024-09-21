@@ -25,10 +25,6 @@ var GDSInfoMgr *DSInfoMgr = &DSInfoMgr{
 }
 
 const (
-	DS_Loading = iota
-	DS_LoadOK
-)
-const (
 	DS_CreatIng = iota
 	DS_CreatOK
 )
@@ -38,7 +34,7 @@ type DSInfo struct {
 	DsProcInfo     *proc.ProcInfo
 	LastUpdateTime time.Time
 	CurrTime       time.Time
-	DSID           string ///ds 唯一id
+	DSID           string
 	DSState        int
 	RealmCfgID     string
 }
@@ -53,7 +49,7 @@ func NewDS(dsID, realmCfgID string) (dsInfo *DSInfo, err error) {
 		LastUpdateTime: time.Now(),
 		CurrTime:       time.Now(),
 		DSID:           dsID,
-		DSState:        DS_Loading,
+		DSState:        DS_CreatIng,
 		RealmCfgID:     realmCfgID,
 		DSConn:         nil,
 	}

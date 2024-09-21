@@ -10,7 +10,6 @@ dsa to ds id
 message DSA2DS_MsgID {
 	enum MsgID {
 		QueryDsStatus  = 0;
-		CreateDS    = 1; //创建DS
 	}
 }
 
@@ -20,50 +19,35 @@ DSA2DS_MsgIDQueryDsStatus
 message  QueryDSStatusReq{
 }
 
-/**
-DSA2DS_MsgIDCreateDS
-*/
-message  DSCreateReq{
-	string   dsID        =1;
-}
-
 /*
 ds to dsa id
 */
 message DS2DSA_MsgID {
 	enum MsgID {
 		DSUpdateState  = 0; //当前游戏状态
-		DSLoadOK       = 1; //进程启动成功
+		DSCreateOK     = 1; //DS进程启动成功
 		DSGameEnd      = 2; //游戏结束，可以回收进程
-		DSDSCreateOk= 3;//DS创建完成
 	}
 }
 
 /**
-DS2DSA_MsgIDDSLoadOK
+DS2DSA_MsgID_CreateOK
 */
-message  DSLoadOKReq{
+message  DS2DSA_CreateOK{
 	string   dsID     =1; //DS id
+	string   realmID  =2;
 }
 
 /**
-DS2DSA_MsgIDDSGameEnd
+DS2DSA_MsgID_DSGameEnd
 */
-message  DSGameEndReq{
+message  DS2DSA_GameEndReq{
 	string   dsID        =1;
 }
 
 /**
-DS2DSA_MsgIDDSLoadOK
+DS2DSA_MsgID_DSUpdateState
 */
-message  DSUpdateStateReq{
+message  DS2DSA_UpdateStateReq{
 
-}
-
-/**
-DS2DSA_MsgIDDSDSCreateOk
-*/
-message  DSCreateResp{
-	string   realmID         =1;
-	string   dsID            =2;
 }

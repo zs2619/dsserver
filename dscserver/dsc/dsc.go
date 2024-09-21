@@ -25,8 +25,8 @@ func (dscServer *DSCServer) Run() {
 	if err != nil {
 		logrus.Fatalf("failed to listen: %v", err)
 	}
-	pb.RegisterGameDscDSServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
-	pb.RegisterDsaDscADSServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})
+	pb.RegisterRpcGameDscServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
+	pb.RegisterStreamDscDSAServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})
 	dscServer.grpcServer.Serve(lis)
 }
 
