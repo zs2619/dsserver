@@ -16,6 +16,7 @@ var GDSAServerCB DSAServerCB
 
 func (dsaCB *DSAServerCB) OnDisConectCB(conn kissnet.IConnection) error {
 	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
+	GDSInfoMgr.DelDSByConn(conn)
 	return nil
 }
 

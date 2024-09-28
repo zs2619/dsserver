@@ -78,6 +78,9 @@ func (ds *DSInfo) SendMsg(msgID pb.DSA2DS_MsgID_MsgID, msg []byte) error {
 }
 
 func (ds *DSInfo) SetConnection(conn kissnet.IConnection) error {
+	if conn == nil {
+		return fmt.Errorf("conn nil")
+	}
 	ds.DSConn = conn
 	GDSInfoMgr.DSConnMgr[ds.DSConn] = ds
 	return nil
