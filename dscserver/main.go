@@ -34,17 +34,13 @@ func main() {
 
 	port, err := strconv.Atoi(os.Getenv("DS_DSC_PORT"))
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Info("DS_GS_PORT error")
+		logrus.WithError(err).WithFields(logrus.Fields{}).Fatal("DS_GS_PORT error")
 		return
 	}
 
 	dscServer, err := dsc.NewDSCServer(port)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Info("dsc.NewDSCServer error")
+		logrus.WithError(err).WithFields(logrus.Fields{}).Fatal("dsc.NewDSCServer error")
 		return
 	}
 

@@ -23,7 +23,7 @@ var GDSCServer *DSCServer
 func (dscServer *DSCServer) Run() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dscServer.port))
 	if err != nil {
-		logrus.Fatalf("failed to listen: %v", err)
+		logrus.WithError(err).Fatalf("failed to listen ")
 	}
 	pb.RegisterRpcGameDscServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
 	pb.RegisterStreamDscDSAServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})

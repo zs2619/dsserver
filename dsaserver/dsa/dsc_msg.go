@@ -8,7 +8,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func RouterMap(agent *DSAClient, pmsg proto.Message) (err error) {
+func RouterMap(agent *DSANatsConn, pmsg proto.Message) (err error) {
 	logrus.WithFields(logrus.Fields{"pmsg": pmsg}).Info("RouterMap")
 
 	switch msg := pmsg.(type) {
@@ -23,12 +23,12 @@ func RouterMap(agent *DSAClient, pmsg proto.Message) (err error) {
 	}
 	return
 }
-func CreateDS(agent *DSAClient, msg *pb.StreamCreateDS) (err error) {
+func CreateDS(agent *DSANatsConn, msg *pb.StreamCreateDS) (err error) {
 	logrus.WithFields(logrus.Fields{"m": msg}).Info("CreateDS")
 	return nil
 }
 
-func RemoveDS(agent *DSAClient, msg *pb.StreamRemoveDS) (err error) {
+func RemoveDS(agent *DSANatsConn, msg *pb.StreamRemoveDS) (err error) {
 	logrus.WithFields(logrus.Fields{"m": msg}).Info("RemoveDS")
 	return nil
 }

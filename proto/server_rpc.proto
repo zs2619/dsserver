@@ -34,6 +34,9 @@ service RpcGameDsc {
   rpc RemoveDS (RpcRemoveDSReq) returns (RpcRemoveDSResp) {}
 }
 
+message NatsEvent{
+   google.protobuf.Any NatsEventMsg = 1;
+}
 
 message StreamClientEvent{
    google.protobuf.Any CEvent = 1;
@@ -42,6 +45,14 @@ message StreamClientEvent{
 message StreamServerEvent {
    google.protobuf.Any SEvent = 1;
 }
+
+message DSADSC_Hello{
+	string   agentName  = 1;
+}
+message DSCDSA_HelloACk{
+	string   agentName  = 1;
+}
+
 message StreamCreateDS{
 	string   dsID       = 1;
 	string   realmCfgID = 3;  //

@@ -10,7 +10,7 @@ type RPCGameDscServer struct {
 	pb.UnimplementedRpcGameDscServer
 }
 
-func (gdServer *RPCGameDscServer) CreateRealm(ctx context.Context, createRealReq *pb.RpcCreateDSReq) (*pb.RpcCreateDSResp, error) {
+func (gdServer *RPCGameDscServer) CreateDS(ctx context.Context, createRealReq *pb.RpcCreateDSReq) (*pb.RpcCreateDSResp, error) {
 	dsaInfo := dsamgr.GDSAMgr.GetOptiamlDsa()
 	if dsaInfo == nil {
 		//Todo 没有资源
@@ -20,7 +20,7 @@ func (gdServer *RPCGameDscServer) CreateRealm(ctx context.Context, createRealReq
 	return nil, nil
 }
 
-func (gdServer *RPCGameDscServer) RemoveRealm(ctx context.Context, req *pb.RpcRemoveDSReq) (*pb.RpcRemoveDSResp, error) {
+func (gdServer *RPCGameDscServer) RemoveDS(ctx context.Context, req *pb.RpcRemoveDSReq) (*pb.RpcRemoveDSResp, error) {
 	dsaInfo := dsamgr.GDSAMgr.GetDsaByID(req.DsID)
 	if dsaInfo == nil {
 		return nil, nil
