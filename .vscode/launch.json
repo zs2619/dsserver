@@ -1,7 +1,4 @@
 {
-    // 使用 IntelliSense 了解相关属性。 
-    // 悬停以查看现有属性的描述。
-    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
@@ -30,6 +27,7 @@
             "env": {
                 "DS_CONFIGPATH": "${workspaceFolder}",
                 "DS_DSC_PORT": "10000",
+                "DS_REDISURI": "172.17.0.1:7001,172.17.0.1:7002"
             },
             "args": [],
             "showLog": true
@@ -38,17 +36,19 @@
             "name": "dsa server",
             "type": "go",
             "request": "launch",
-            "cwd": "..",
+            "cwd": "${workspaceFolder}",
             "mode": "debug",
             "program": "${workspaceFolder}/dsaserver/main.go",
             "env": {
                 "DS_CONFIGPATH": "${workspaceFolder}",
                 "DS_DSA_PORT": "11000",
+                "DS_DSA_GRPC_PORT": "12000",
+                "DS_DSA_GRPC_ADDR": "127.0.0.1:12000",
                 "DS_DSC_GRPC_URI": "127.0.0.1:10000",
-                "DS_DSA_AgentID": "AgentID0",
+                "DS_DSA_AgentID": "AgentID0"
             },
             "args": [],
             "showLog": true
-        },
+        }
     ]
 }

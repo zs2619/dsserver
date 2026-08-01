@@ -42,11 +42,11 @@ func quickJoinRealmReq(player *GamePlayer, msg []byte) error {
 		return fmt.Errorf("len(player.TeamID) != 0")
 	}
 
-	_, err = team.QuickJoinRealmTeam(player.UserID, joinRealm.RealmConfigID)
+	teamID, err := team.QuickJoinRealmTeam(player.UserID, joinRealm.RealmConfigID)
 	if err != nil {
 		return err
 	}
-
+	player.TeamID = teamID
 	return nil
 }
 
@@ -81,5 +81,6 @@ func quitRealmTeam(player *GamePlayer, msg []byte) error {
 	if err != nil {
 		return err
 	}
+	player.TeamID = ""
 	return nil
 }

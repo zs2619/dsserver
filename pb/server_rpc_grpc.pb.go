@@ -22,8 +22,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RpcGameDscClient interface {
-	CreateDS(ctx context.Context, in *RpcCreateDSReq, opts ...grpc.CallOption) (*RpcCreateDSResp, error)
-	RemoveDS(ctx context.Context, in *RpcRemoveDSReq, opts ...grpc.CallOption) (*RpcRemoveDSResp, error)
+	CreateRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error)
+	RemoveRealm(ctx context.Context, in *RpcRemoveRealmReq, opts ...grpc.CallOption) (*RpcRemoveRealmResp, error)
 }
 
 type rpcGameDscClient struct {
@@ -34,18 +34,18 @@ func NewRpcGameDscClient(cc grpc.ClientConnInterface) RpcGameDscClient {
 	return &rpcGameDscClient{cc}
 }
 
-func (c *rpcGameDscClient) CreateDS(ctx context.Context, in *RpcCreateDSReq, opts ...grpc.CallOption) (*RpcCreateDSResp, error) {
-	out := new(RpcCreateDSResp)
-	err := c.cc.Invoke(ctx, "/pb.RpcGameDsc/CreateDS", in, out, opts...)
+func (c *rpcGameDscClient) CreateRealm(ctx context.Context, in *RpcCreateRealmReq, opts ...grpc.CallOption) (*RpcCreateRealmResp, error) {
+	out := new(RpcCreateRealmResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcGameDsc/CreateRealm", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *rpcGameDscClient) RemoveDS(ctx context.Context, in *RpcRemoveDSReq, opts ...grpc.CallOption) (*RpcRemoveDSResp, error) {
-	out := new(RpcRemoveDSResp)
-	err := c.cc.Invoke(ctx, "/pb.RpcGameDsc/RemoveDS", in, out, opts...)
+func (c *rpcGameDscClient) RemoveRealm(ctx context.Context, in *RpcRemoveRealmReq, opts ...grpc.CallOption) (*RpcRemoveRealmResp, error) {
+	out := new(RpcRemoveRealmResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcGameDsc/RemoveRealm", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,8 +56,8 @@ func (c *rpcGameDscClient) RemoveDS(ctx context.Context, in *RpcRemoveDSReq, opt
 // All implementations must embed UnimplementedRpcGameDscServer
 // for forward compatibility
 type RpcGameDscServer interface {
-	CreateDS(context.Context, *RpcCreateDSReq) (*RpcCreateDSResp, error)
-	RemoveDS(context.Context, *RpcRemoveDSReq) (*RpcRemoveDSResp, error)
+	CreateRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error)
+	RemoveRealm(context.Context, *RpcRemoveRealmReq) (*RpcRemoveRealmResp, error)
 	mustEmbedUnimplementedRpcGameDscServer()
 }
 
@@ -65,11 +65,11 @@ type RpcGameDscServer interface {
 type UnimplementedRpcGameDscServer struct {
 }
 
-func (UnimplementedRpcGameDscServer) CreateDS(context.Context, *RpcCreateDSReq) (*RpcCreateDSResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateDS not implemented")
+func (UnimplementedRpcGameDscServer) CreateRealm(context.Context, *RpcCreateRealmReq) (*RpcCreateRealmResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRealm not implemented")
 }
-func (UnimplementedRpcGameDscServer) RemoveDS(context.Context, *RpcRemoveDSReq) (*RpcRemoveDSResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RemoveDS not implemented")
+func (UnimplementedRpcGameDscServer) RemoveRealm(context.Context, *RpcRemoveRealmReq) (*RpcRemoveRealmResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveRealm not implemented")
 }
 func (UnimplementedRpcGameDscServer) mustEmbedUnimplementedRpcGameDscServer() {}
 
@@ -84,38 +84,38 @@ func RegisterRpcGameDscServer(s grpc.ServiceRegistrar, srv RpcGameDscServer) {
 	s.RegisterService(&RpcGameDsc_ServiceDesc, srv)
 }
 
-func _RpcGameDsc_CreateDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RpcCreateDSReq)
+func _RpcGameDsc_CreateRealm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RpcCreateRealmReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RpcGameDscServer).CreateDS(ctx, in)
+		return srv.(RpcGameDscServer).CreateRealm(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.RpcGameDsc/CreateDS",
+		FullMethod: "/pb.RpcGameDsc/CreateRealm",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RpcGameDscServer).CreateDS(ctx, req.(*RpcCreateDSReq))
+		return srv.(RpcGameDscServer).CreateRealm(ctx, req.(*RpcCreateRealmReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RpcGameDsc_RemoveDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RpcRemoveDSReq)
+func _RpcGameDsc_RemoveRealm_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RpcRemoveRealmReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RpcGameDscServer).RemoveDS(ctx, in)
+		return srv.(RpcGameDscServer).RemoveRealm(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/pb.RpcGameDsc/RemoveDS",
+		FullMethod: "/pb.RpcGameDsc/RemoveRealm",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RpcGameDscServer).RemoveDS(ctx, req.(*RpcRemoveDSReq))
+		return srv.(RpcGameDscServer).RemoveRealm(ctx, req.(*RpcRemoveRealmReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -128,132 +128,330 @@ var RpcGameDsc_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*RpcGameDscServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "CreateDS",
-			Handler:    _RpcGameDsc_CreateDS_Handler,
+			MethodName: "CreateRealm",
+			Handler:    _RpcGameDsc_CreateRealm_Handler,
 		},
 		{
-			MethodName: "RemoveDS",
-			Handler:    _RpcGameDsc_RemoveDS_Handler,
+			MethodName: "RemoveRealm",
+			Handler:    _RpcGameDsc_RemoveRealm_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "server_rpc.proto",
 }
 
-// StreamDscDSAClient is the client API for StreamDscDSA service.
+// RpcDsaReportClient is the client API for RpcDsaReport service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type StreamDscDSAClient interface {
-	StreamService(ctx context.Context, opts ...grpc.CallOption) (StreamDscDSA_StreamServiceClient, error)
+type RpcDsaReportClient interface {
+	RegisterAgent(ctx context.Context, in *RegisterAgentReq, opts ...grpc.CallOption) (*RegisterAgentResp, error)
+	Heartbeat(ctx context.Context, in *AgentHeartbeatReq, opts ...grpc.CallOption) (*AgentHeartbeatResp, error)
+	ReportDSEvent(ctx context.Context, in *ReportDSEventReq, opts ...grpc.CallOption) (*ReportDSEventResp, error)
 }
 
-type streamDscDSAClient struct {
+type rpcDsaReportClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewStreamDscDSAClient(cc grpc.ClientConnInterface) StreamDscDSAClient {
-	return &streamDscDSAClient{cc}
+func NewRpcDsaReportClient(cc grpc.ClientConnInterface) RpcDsaReportClient {
+	return &rpcDsaReportClient{cc}
 }
 
-func (c *streamDscDSAClient) StreamService(ctx context.Context, opts ...grpc.CallOption) (StreamDscDSA_StreamServiceClient, error) {
-	stream, err := c.cc.NewStream(ctx, &StreamDscDSA_ServiceDesc.Streams[0], "/pb.StreamDscDSA/StreamService", opts...)
+func (c *rpcDsaReportClient) RegisterAgent(ctx context.Context, in *RegisterAgentReq, opts ...grpc.CallOption) (*RegisterAgentResp, error) {
+	out := new(RegisterAgentResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaReport/RegisterAgent", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &streamDscDSAStreamServiceClient{stream}
-	return x, nil
+	return out, nil
 }
 
-type StreamDscDSA_StreamServiceClient interface {
-	Send(*StreamClientEvent) error
-	Recv() (*StreamServerEvent, error)
-	grpc.ClientStream
-}
-
-type streamDscDSAStreamServiceClient struct {
-	grpc.ClientStream
-}
-
-func (x *streamDscDSAStreamServiceClient) Send(m *StreamClientEvent) error {
-	return x.ClientStream.SendMsg(m)
-}
-
-func (x *streamDscDSAStreamServiceClient) Recv() (*StreamServerEvent, error) {
-	m := new(StreamServerEvent)
-	if err := x.ClientStream.RecvMsg(m); err != nil {
+func (c *rpcDsaReportClient) Heartbeat(ctx context.Context, in *AgentHeartbeatReq, opts ...grpc.CallOption) (*AgentHeartbeatResp, error) {
+	out := new(AgentHeartbeatResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaReport/Heartbeat", in, out, opts...)
+	if err != nil {
 		return nil, err
 	}
-	return m, nil
+	return out, nil
 }
 
-// StreamDscDSAServer is the server API for StreamDscDSA service.
-// All implementations must embed UnimplementedStreamDscDSAServer
+func (c *rpcDsaReportClient) ReportDSEvent(ctx context.Context, in *ReportDSEventReq, opts ...grpc.CallOption) (*ReportDSEventResp, error) {
+	out := new(ReportDSEventResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaReport/ReportDSEvent", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RpcDsaReportServer is the server API for RpcDsaReport service.
+// All implementations must embed UnimplementedRpcDsaReportServer
 // for forward compatibility
-type StreamDscDSAServer interface {
-	StreamService(StreamDscDSA_StreamServiceServer) error
-	mustEmbedUnimplementedStreamDscDSAServer()
+type RpcDsaReportServer interface {
+	RegisterAgent(context.Context, *RegisterAgentReq) (*RegisterAgentResp, error)
+	Heartbeat(context.Context, *AgentHeartbeatReq) (*AgentHeartbeatResp, error)
+	ReportDSEvent(context.Context, *ReportDSEventReq) (*ReportDSEventResp, error)
+	mustEmbedUnimplementedRpcDsaReportServer()
 }
 
-// UnimplementedStreamDscDSAServer must be embedded to have forward compatible implementations.
-type UnimplementedStreamDscDSAServer struct {
+// UnimplementedRpcDsaReportServer must be embedded to have forward compatible implementations.
+type UnimplementedRpcDsaReportServer struct {
 }
 
-func (UnimplementedStreamDscDSAServer) StreamService(StreamDscDSA_StreamServiceServer) error {
-	return status.Errorf(codes.Unimplemented, "method StreamService not implemented")
+func (UnimplementedRpcDsaReportServer) RegisterAgent(context.Context, *RegisterAgentReq) (*RegisterAgentResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterAgent not implemented")
 }
-func (UnimplementedStreamDscDSAServer) mustEmbedUnimplementedStreamDscDSAServer() {}
+func (UnimplementedRpcDsaReportServer) Heartbeat(context.Context, *AgentHeartbeatReq) (*AgentHeartbeatResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Heartbeat not implemented")
+}
+func (UnimplementedRpcDsaReportServer) ReportDSEvent(context.Context, *ReportDSEventReq) (*ReportDSEventResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportDSEvent not implemented")
+}
+func (UnimplementedRpcDsaReportServer) mustEmbedUnimplementedRpcDsaReportServer() {}
 
-// UnsafeStreamDscDSAServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to StreamDscDSAServer will
+// UnsafeRpcDsaReportServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RpcDsaReportServer will
 // result in compilation errors.
-type UnsafeStreamDscDSAServer interface {
-	mustEmbedUnimplementedStreamDscDSAServer()
+type UnsafeRpcDsaReportServer interface {
+	mustEmbedUnimplementedRpcDsaReportServer()
 }
 
-func RegisterStreamDscDSAServer(s grpc.ServiceRegistrar, srv StreamDscDSAServer) {
-	s.RegisterService(&StreamDscDSA_ServiceDesc, srv)
+func RegisterRpcDsaReportServer(s grpc.ServiceRegistrar, srv RpcDsaReportServer) {
+	s.RegisterService(&RpcDsaReport_ServiceDesc, srv)
 }
 
-func _StreamDscDSA_StreamService_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(StreamDscDSAServer).StreamService(&streamDscDSAStreamServiceServer{stream})
-}
-
-type StreamDscDSA_StreamServiceServer interface {
-	Send(*StreamServerEvent) error
-	Recv() (*StreamClientEvent, error)
-	grpc.ServerStream
-}
-
-type streamDscDSAStreamServiceServer struct {
-	grpc.ServerStream
-}
-
-func (x *streamDscDSAStreamServiceServer) Send(m *StreamServerEvent) error {
-	return x.ServerStream.SendMsg(m)
-}
-
-func (x *streamDscDSAStreamServiceServer) Recv() (*StreamClientEvent, error) {
-	m := new(StreamClientEvent)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
+func _RpcDsaReport_RegisterAgent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegisterAgentReq)
+	if err := dec(in); err != nil {
 		return nil, err
 	}
-	return m, nil
+	if interceptor == nil {
+		return srv.(RpcDsaReportServer).RegisterAgent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaReport/RegisterAgent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaReportServer).RegisterAgent(ctx, req.(*RegisterAgentReq))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
-// StreamDscDSA_ServiceDesc is the grpc.ServiceDesc for StreamDscDSA service.
+func _RpcDsaReport_Heartbeat_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AgentHeartbeatReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RpcDsaReportServer).Heartbeat(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaReport/Heartbeat",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaReportServer).Heartbeat(ctx, req.(*AgentHeartbeatReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RpcDsaReport_ReportDSEvent_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportDSEventReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RpcDsaReportServer).ReportDSEvent(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaReport/ReportDSEvent",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaReportServer).ReportDSEvent(ctx, req.(*ReportDSEventReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RpcDsaReport_ServiceDesc is the grpc.ServiceDesc for RpcDsaReport service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var StreamDscDSA_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "pb.StreamDscDSA",
-	HandlerType: (*StreamDscDSAServer)(nil),
-	Methods:     []grpc.MethodDesc{},
-	Streams: []grpc.StreamDesc{
+var RpcDsaReport_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.RpcDsaReport",
+	HandlerType: (*RpcDsaReportServer)(nil),
+	Methods: []grpc.MethodDesc{
 		{
-			StreamName:    "StreamService",
-			Handler:       _StreamDscDSA_StreamService_Handler,
-			ServerStreams: true,
-			ClientStreams: true,
+			MethodName: "RegisterAgent",
+			Handler:    _RpcDsaReport_RegisterAgent_Handler,
+		},
+		{
+			MethodName: "Heartbeat",
+			Handler:    _RpcDsaReport_Heartbeat_Handler,
+		},
+		{
+			MethodName: "ReportDSEvent",
+			Handler:    _RpcDsaReport_ReportDSEvent_Handler,
 		},
 	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "server_rpc.proto",
+}
+
+// RpcDsaAgentClient is the client API for RpcDsaAgent service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RpcDsaAgentClient interface {
+	CreateDS(ctx context.Context, in *DsaCreateDSReq, opts ...grpc.CallOption) (*DsaCreateDSResp, error)
+	RemoveDS(ctx context.Context, in *DsaRemoveDSReq, opts ...grpc.CallOption) (*DsaRemoveDSResp, error)
+	GetStatus(ctx context.Context, in *DsaGetStatusReq, opts ...grpc.CallOption) (*DsaGetStatusResp, error)
+}
+
+type rpcDsaAgentClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRpcDsaAgentClient(cc grpc.ClientConnInterface) RpcDsaAgentClient {
+	return &rpcDsaAgentClient{cc}
+}
+
+func (c *rpcDsaAgentClient) CreateDS(ctx context.Context, in *DsaCreateDSReq, opts ...grpc.CallOption) (*DsaCreateDSResp, error) {
+	out := new(DsaCreateDSResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaAgent/CreateDS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rpcDsaAgentClient) RemoveDS(ctx context.Context, in *DsaRemoveDSReq, opts ...grpc.CallOption) (*DsaRemoveDSResp, error) {
+	out := new(DsaRemoveDSResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaAgent/RemoveDS", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *rpcDsaAgentClient) GetStatus(ctx context.Context, in *DsaGetStatusReq, opts ...grpc.CallOption) (*DsaGetStatusResp, error) {
+	out := new(DsaGetStatusResp)
+	err := c.cc.Invoke(ctx, "/pb.RpcDsaAgent/GetStatus", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RpcDsaAgentServer is the server API for RpcDsaAgent service.
+// All implementations must embed UnimplementedRpcDsaAgentServer
+// for forward compatibility
+type RpcDsaAgentServer interface {
+	CreateDS(context.Context, *DsaCreateDSReq) (*DsaCreateDSResp, error)
+	RemoveDS(context.Context, *DsaRemoveDSReq) (*DsaRemoveDSResp, error)
+	GetStatus(context.Context, *DsaGetStatusReq) (*DsaGetStatusResp, error)
+	mustEmbedUnimplementedRpcDsaAgentServer()
+}
+
+// UnimplementedRpcDsaAgentServer must be embedded to have forward compatible implementations.
+type UnimplementedRpcDsaAgentServer struct {
+}
+
+func (UnimplementedRpcDsaAgentServer) CreateDS(context.Context, *DsaCreateDSReq) (*DsaCreateDSResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDS not implemented")
+}
+func (UnimplementedRpcDsaAgentServer) RemoveDS(context.Context, *DsaRemoveDSReq) (*DsaRemoveDSResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveDS not implemented")
+}
+func (UnimplementedRpcDsaAgentServer) GetStatus(context.Context, *DsaGetStatusReq) (*DsaGetStatusResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
+}
+func (UnimplementedRpcDsaAgentServer) mustEmbedUnimplementedRpcDsaAgentServer() {}
+
+// UnsafeRpcDsaAgentServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RpcDsaAgentServer will
+// result in compilation errors.
+type UnsafeRpcDsaAgentServer interface {
+	mustEmbedUnimplementedRpcDsaAgentServer()
+}
+
+func RegisterRpcDsaAgentServer(s grpc.ServiceRegistrar, srv RpcDsaAgentServer) {
+	s.RegisterService(&RpcDsaAgent_ServiceDesc, srv)
+}
+
+func _RpcDsaAgent_CreateDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DsaCreateDSReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RpcDsaAgentServer).CreateDS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaAgent/CreateDS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaAgentServer).CreateDS(ctx, req.(*DsaCreateDSReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RpcDsaAgent_RemoveDS_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DsaRemoveDSReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RpcDsaAgentServer).RemoveDS(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaAgent/RemoveDS",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaAgentServer).RemoveDS(ctx, req.(*DsaRemoveDSReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RpcDsaAgent_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DsaGetStatusReq)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RpcDsaAgentServer).GetStatus(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.RpcDsaAgent/GetStatus",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RpcDsaAgentServer).GetStatus(ctx, req.(*DsaGetStatusReq))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RpcDsaAgent_ServiceDesc is the grpc.ServiceDesc for RpcDsaAgent service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var RpcDsaAgent_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "pb.RpcDsaAgent",
+	HandlerType: (*RpcDsaAgentServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateDS",
+			Handler:    _RpcDsaAgent_CreateDS_Handler,
+		},
+		{
+			MethodName: "RemoveDS",
+			Handler:    _RpcDsaAgent_RemoveDS_Handler,
+		},
+		{
+			MethodName: "GetStatus",
+			Handler:    _RpcDsaAgent_GetStatus_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "server_rpc.proto",
 }

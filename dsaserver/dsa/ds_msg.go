@@ -5,6 +5,7 @@ import (
 	"dsservices/pb"
 	"fmt"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -35,24 +36,42 @@ func dsCreateOK(conn kissnet.IConnection, msg []byte) error {
 	}
 	dsInfo.SetConnection(conn)
 	if dsInfo.DSState == DS_CreatIng {
-		/// 创建DS成功
 		dsInfo.DSState = DS_CreatOK
-
 		addr := fmt.Sprintf("%s:%d", dsInfo.DsProcInfo.Ip, dsInfo.DsProcInfo.Port)
-		rpcResp := &pb.StreamCreateDSResult{
-			DsAddr:     addr,
-			RealmCfgID: dsInfo.RealmCfgID,
+		logrus.WithFields(logrus.Fields{"dsID": dsInfo.DSID, "dsAddr": addr}).Info("DS CreateOK")
+		if GReportClient != nil {
+			GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+				DsID:      dsInfo.DSID,
+				RealmID:   dsInfo.RealmID,
+				EventType: pb.DSEventType_DS_EVENT_READY,
+				DsAddr:    addr,
+			})
 		}
-		GDSAClient.Send2DSC(rpcResp)
 	}
 	return nil
 }
 
 func dsGameEnd(dsInfo *DSInfo, msg []byte) error {
-	//TODO回收ds进程
+	if GReportClient != nil {
+		GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+			DsID:      dsInfo.DSID,
+			RealmID:   dsInfo.RealmID,
+			EventType: pb.DSEventType_DS_EVENT_GAME_END,
+		})
+	}
+	// Untrack first so watchDSProcess Wait does not report DEAD after intentional end.
+	GDSInfoMgr.DelDSByID(dsInfo.DSID)
+	_ = dsInfo.KillDS()
 	return nil
 }
 
 func dsUpdateState(dsInfo *DSInfo, msg []byte) error {
+	if GReportClient != nil {
+		GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+			DsID:      dsInfo.DSID,
+			RealmID:   dsInfo.RealmID,
+			EventType: pb.DSEventType_DS_EVENT_PLAYER_ENTER,
+		})
+	}
 	return nil
 }

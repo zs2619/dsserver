@@ -2,11 +2,13 @@ package main
 
 import (
 	"dsservices/common"
+	"dsservices/config"
 	"dsservices/gameserver/gameplayer"
 	"dsservices/gameserver/realm"
 	"dsservices/gameserver/team"
 	"dsservices/kissnet"
 	"dsservices/store"
+	"fmt"
 	"os"
 	"strconv"
 
@@ -24,18 +26,32 @@ func main() {
 		}).Info("store.InitStore error")
 		return
 	}
-	team.Init()
+	if err := team.Init(); err != nil {
+		logrus.WithError(err).Error("team.Init error")
+		return
+	}
 
 	grpcURL := os.Getenv("DS_DSC_GRPC_URI")
 	if len(grpcURL) == 0 {
-		logrus.WithFields(logrus.Fields{}).Info("len(grpcURL) == 0")
+		logrus.Info("DS_DSC_GRPC_URI empty")
 		return
 	}
 	err = realm.DSCGameGRPCInit(grpcURL)
 	if err != nil {
-		logrus.Info("realm.RealmGRPCInit error")
+		logrus.WithError(err).Error("realm.DSCGameGRPCInit error")
 		return
 	}
+	realm.StartRealmSubscriber()
+
+	// Sweep disconnected players past the realm grace window.
+	graceSec := config.GameConfig.Realm.DisconnectGraceSec
+	if graceSec <= 0 {
+		graceSec = 60
+	}
+	sweepSpec := fmt.Sprintf("@every %ds", graceSec/2+1)
+	common.GCron.AddFunc(sweepSpec, func() {
+		gameplayer.GPlayerMgr.SweepDisconnected(common.GetNowTime().Unix(), graceSec)
+	})
 	port, err := strconv.Atoi(os.Getenv("DS_GS_PORT"))
 	if err != nil {
 		logrus.WithFields(logrus.Fields{

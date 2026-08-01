@@ -1,12 +1,12 @@
-FROM golang:1.20.1-bullseye
+FROM golang:1.26.5-bookworm
 
 ARG appname
 ENV Appname ${appname}
 
 ADD . $GOPATH/src/$appname
 WORKDIR $GOPATH/src/$appname
-RUN go build -o dsc  dsaserver/main.go
-RUN go build -o dsa  dscserver/main.go
+RUN go build -o dsc  dscserver/main.go
+RUN go build -o dsa  dsaserver/main.go
 RUN go build -o game gameserver/main.go
 
 CMD tar -zcf - Dockerfile.run  \

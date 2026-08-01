@@ -1,8 +1,12 @@
 package test
 
 import (
-	"dsservices/dsaserver/dsa"
-	"dsservices/dscserver/dsc"
+	"context"
+	"dsservices/config"
+	"dsservices/dscserver/gamedsc"
+	"dsservices/pb"
+	"dsservices/store"
+	"dsservices/store/dsastore"
 	"testing"
 	"time"
 
@@ -17,22 +21,55 @@ func TestProcessUtilTest(t *testing.T) {
 	suite.Run(t, new(DscDsaTestSuite))
 }
 
-func (t *DscDsaTestSuite) TestDscDsa() {
-	port := 30000
-	agentID0 := "agentID0"
-	agentID1 := "agentID1"
-	grpcURL := "127.0.0.1:30000"
-
-	dscServer, err := dsc.NewDSCServer(port)
+// TestRealmAllocateIdempotent: no agent → async fail; ready → already_ready; concurrent → already_creating.
+func (t *DscDsaTestSuite) TestRealmAllocateIdempotent() {
+	ctx := context.Background()
+	realmID := "realm-test-1"
+	err := dsastore.WriteRealmSkeleton(ctx, realmID, "team1", "cfg1", []string{"u1"})
 	t.Nil(err)
-	go dscServer.Run()
 
-	agent0, err := dsa.NewDSAClient(agentID0, grpcURL)
+	srv := &gamedsc.RPCGameDscServer{}
+	resp, err := srv.CreateRealm(ctx, &pb.RpcCreateRealmReq{
+		RealmID:    realmID,
+		TeamID:     "team1",
+		RealmCfgID: "cfg1",
+	})
 	t.Nil(err)
-	go agent0.RunStreamService()
+	t.Equal(pb.CreateRealmStatus_CREATE_REALM_ACCEPTED, resp.Status)
 
-	agent1, err := dsa.NewDSAClient(agentID1, grpcURL)
-	go agent1.RunStreamService()
+	// concurrent claim while allocating
+	respDup, err := srv.CreateRealm(ctx, &pb.RpcCreateRealmReq{
+		RealmID:    realmID,
+		TeamID:     "team1",
+		RealmCfgID: "cfg1",
+	})
 	t.Nil(err)
-	time.Sleep(time.Second * 10)
+	t.Equal(pb.CreateRealmStatus_CREATE_REALM_ALREADY_CREATING, respDup.Status)
+
+	// no agent → async fail
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		info, _ := dsastore.GetRealm(ctx, realmID)
+		if info != nil && info.State == dsastore.RealmStateFail {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	info, err := dsastore.GetRealm(ctx, realmID)
+	t.Nil(err)
+	t.NotNil(info)
+	t.Equal(dsastore.RealmStateFail, info.State)
+
+	_ = dsastore.MarkRealmReady(ctx, realmID, "ds1", "127.0.0.1:30000")
+	resp2, err := srv.CreateRealm(ctx, &pb.RpcCreateRealmReq{
+		RealmID:    realmID,
+		TeamID:     "team1",
+		RealmCfgID: "cfg1",
+	})
+	t.Nil(err)
+	t.Equal(pb.CreateRealmStatus_CREATE_REALM_ALREADY_READY, resp2.Status)
+	t.Equal("127.0.0.1:30000", resp2.DsAddr)
+
+	_ = config.GameConfig
+	_ = store.RedisClient
 }

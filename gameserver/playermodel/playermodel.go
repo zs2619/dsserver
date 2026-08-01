@@ -57,7 +57,7 @@ func LoadPlayerModel(playerID string) (*PlayerModel, error) {
 		return nil, err
 	}
 	var pm PlayerModel
-	filter := bson.D{{"_id", uidObj}}
+	filter := bson.D{{Key: "_id", Value: uidObj}}
 	err = store.GetColl(store.PlayerColl).FindOne(context.TODO(), filter).Decode(&pm)
 	if err != nil {
 		return nil, err

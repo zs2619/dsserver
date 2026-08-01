@@ -1,6 +1,7 @@
 package gameplayer
 
 import (
+	"dsservices/gameserver/team"
 	"dsservices/kissnet"
 	"dsservices/pb"
 	"fmt"
@@ -69,4 +70,58 @@ func (mgr *PlayerMgr) DelPlayer(conn kissnet.IConnection) {
 
 	delete(mgr.playerClientIDMgr, conn)
 	delete(mgr.playerIDMgr, p.UserID)
+}
+
+// MarkDisconnected keeps the player in the registry (for reconnect) but flags it offline.
+// If the player is in a realm, the entry is retained until the grace window expires.
+func (mgr *PlayerMgr) MarkDisconnected(conn kissnet.IConnection, nowUnix int64) bool {
+	mgr.mutex.Lock()
+	defer mgr.mutex.Unlock()
+	p, ok := mgr.playerClientIDMgr[conn]
+	if !ok {
+		return false
+	}
+	// 重连后旧连接的异步回调可能晚到：只有当断开的连接仍是当前连接时才置空/标记掉线，
+	// 否则会把刚重连上的新连接置空并把玩家误判为掉线被宽限回收。
+	delete(mgr.playerClientIDMgr, conn)
+	if p.Conn == conn {
+		p.disconnectedAtUnix = nowUnix
+		p.Conn = nil
+	}
+	return p.RealmID != ""
+}
+
+// SweepDisconnected removes players past the grace window and leaves their realms.
+func (mgr *PlayerMgr) SweepDisconnected(nowUnix int64, graceSec int64) {
+	mgr.mutex.Lock()
+	var toRemove []*GamePlayer
+	for uid, p := range mgr.playerIDMgr {
+		if p.disconnectedAtUnix == 0 {
+			continue
+		}
+		if nowUnix-p.disconnectedAtUnix >= graceSec {
+			toRemove = append(toRemove, p)
+			delete(mgr.playerIDMgr, uid)
+		}
+	}
+	mgr.num -= int64(len(toRemove))
+	mgr.mutex.Unlock()
+
+	for _, p := range toRemove {
+		if p.RealmID != "" {
+			_, _ = team.QuitRealm(p.UserID, p.RealmID)
+		} else if p.TeamID != "" {
+			_, _ = team.QuitRealmTeam(p.UserID, p.TeamID)
+		}
+		p.Dispose()
+	}
+}
+
+// CancelReconnect clears the disconnected flag on login.
+func (mgr *PlayerMgr) CancelReconnect(userID string) {
+	mgr.mutex.Lock()
+	defer mgr.mutex.Unlock()
+	if p, ok := mgr.playerIDMgr[userID]; ok {
+		p.disconnectedAtUnix = 0
+	}
 }

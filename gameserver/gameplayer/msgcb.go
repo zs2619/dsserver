@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"dsservices/common"
 	"dsservices/kissnet"
 	"dsservices/pb"
 
@@ -17,6 +18,11 @@ var GGamePlayerCB GameServerCB
 
 func (gsCB *GameServerCB) OnDisConectCB(conn kissnet.IConnection) error {
 	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
+	inRealm := GPlayerMgr.MarkDisconnected(conn, common.GetNowTime().Unix())
+	if !inRealm {
+		// not in a realm: drop immediately (team matching handled by timeout cron)
+		GPlayerMgr.DelPlayer(conn)
+	}
 	return nil
 }
 

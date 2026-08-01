@@ -2,5 +2,21 @@
 	"dsPath": "/bin/echo",
 	"dsArgv": "-DSID=%s -Port=%d -realmCfgID=%s",
 	"dsWorkDir": "",
-	"dsIP": "127.0.0.1"
+	"dsIP": "127.0.0.1",
+	"team": {
+		"matchTimeoutMs": 10000
+	},
+	"realm": {
+		"disconnectGraceSec": 60
+	},
+	"dsc": {
+		"orphanScanIntervalSec": 30,
+		"dsCreatingTimeoutSec": 60,
+		"dsReadyIdleTimeoutSec": 120,
+		"dsPlayingIdleTimeoutSec": 3600,
+		"agentHeartbeatTimeoutSec": 15
+	},
+	"dsa": {
+		"heartbeatIntervalSec": 3
+	}
 }

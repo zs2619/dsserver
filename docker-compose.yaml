@@ -6,12 +6,12 @@ services:
       dockerfile: Dockerfile.run
     restart: always
     environment:
+      - DS_CONFIGPATH=/
       - DS_MONGOURI=mongodb://mongodb-server:27017
       - DS_MONGODBNAME=ds
       - DS_REDISURI=redis://redis-server:16379
-      - DS_GAMEPORT=20000
-      - DS_DSCPORT=10000
-      - DS_DSAPORT=11000
+      - DS_GS_PORT=20000
+      - DS_DSC_GRPC_URI=dscserver:10000
     ports:
       - 20000:20000
     depends_on:
@@ -23,22 +23,25 @@ services:
       dockerfile: Dockerfile_DSC.run
     restart: always
     environment:
-      - DS_GAMEPORT=20000
-      - DS_DSCPORT=10000
-      - DS_DSAPORT=11000
+      - DS_CONFIGPATH=/
+      - DS_DSC_PORT=10000
+      - DS_REDISURI=redis://redis-server:16379
     ports:
       - 10000:10000
-    depends_on:
-      - dsaserver
   dsaserver:
     build:
       context: .
       dockerfile: Dockerfile_DSA.run
     restart: always
     environment:
-      - DS_GAMEPORT=20000
-      - DS_DSCPORT=10000
-      - DS_DSAPORT=11000
+      - DS_CONFIGPATH=/
+      - DS_DSA_PORT=11000
+      - DS_DSA_GRPC_PORT=12000
+      - DS_DSA_GRPC_ADDR=dsaserver:12000
+      - DS_DSC_GRPC_URI=dscserver:10000
+      - DS_DSA_AgentID=AgentID0
     ports:
       - 11000:11000
+      - 12000:12000
     depends_on:
+      - dscserver

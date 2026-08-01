@@ -2,6 +2,7 @@ package gameplayer
 
 import (
 	"dsservices/gameserver/playermodel"
+	"dsservices/gameserver/realm"
 	"dsservices/gameserver/user"
 	"dsservices/kissnet"
 	"dsservices/pb"
@@ -36,30 +37,40 @@ func AuthLogin(conn kissnet.IConnection, msgID pb.C2S_MsgID_MsgID, msg []byte) e
 func login(userID string, conn kissnet.IConnection) error {
 	player := GPlayerMgr.GetPlayerByUserID(userID)
 	if player != nil {
-		// 踢掉之前连接
-		GPlayerMgr.DelPlayer(player.Conn)
+		// Reconnect: cancel grace, adopt new conn.
+		GPlayerMgr.CancelReconnect(userID)
+		if player.Conn != nil {
+			player.Conn.Close()
+		}
+		player.Conn = conn
+		GPlayerMgr.playerClientIDMgr[conn] = player
+	} else {
+		userRet, err := getUser(userID, user.PlatFormLocal, "ip")
+		if err != nil {
+			return err
+		}
+		pm, err := getLoginData(userRet)
+		if err != nil {
+			return err
+		}
+		newPlayer := NewPlayer(pm, conn)
+		if err := GPlayerMgr.AddPlayer(newPlayer, conn); err != nil {
+			return err
+		}
+		player = newPlayer
 	}
 
-	userRet, err := getUser(userID, user.PlatFormLocal, "ip")
+	err := player.SendLocalLoginResp()
 	if err != nil {
 		return err
 	}
 
-	pm, err := getLoginData(userRet)
-	if err != nil {
-		return err
-	}
-
-	newPlayer := NewPlayer(pm, conn)
-
-	err = GPlayerMgr.AddPlayer(newPlayer, conn)
-	if err != nil {
-		return err
-	}
-
-	err = newPlayer.SendLocalLoginResp()
-
-	return err
+	realm.TryPushRealmOnLogin(userID, func(realmID, teamID, realmCfgID, dsAddr string) {
+		player.RealmID = realmID
+		player.TeamID = teamID
+		_ = player.SendJoinRealmOKResp(teamID, realmCfgID, dsAddr)
+	})
+	return nil
 }
 
 func getUser(userID, platform, ip string) (userRet *user.UserType, err error) {

@@ -5,25 +5,21 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 var dscGameClient pb.RpcGameDscClient
 
 func DSCGameGRPCInit(serverAddr string) error {
-	var opts []grpc.DialOption
-	opts = append(opts, grpc.WithInsecure())
-	opts = append(opts, grpc.WithBlock())
-	conn, err := grpc.Dial(serverAddr, opts...)
+	conn, err := grpc.Dial(serverAddr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
+	)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Info("game server error")
+		logrus.WithError(err).Error("dial dsc error")
+		return err
 	}
-	logrus.WithFields(
-		logrus.Fields{
-			"address": serverAddr,
-		}).Info("connect dsc ok")
-
+	logrus.WithField("address", serverAddr).Info("connect dsc ok")
 	dscGameClient = pb.NewRpcGameDscClient(conn)
 	return nil
 }

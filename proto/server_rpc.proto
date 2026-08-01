@@ -1,7 +1,6 @@
 syntax = "proto3";
 package pb;
 option go_package = ".;pb";
-import "google/protobuf/any.proto";
 
 message RpcHeader{
 	enum RoomErrEnum {
@@ -12,63 +11,120 @@ message RpcHeader{
 	string       errmsg= 2;
 }
 
-message RpcCreateDSReq{
-	string    realmCfgID = 1;  //
-}
-message RpcCreateDSResp{
-	RpcHeader header     = 1;
-	string    dsID       = 2;
-	string    realmCfgID = 3;  //
+// --- GS → DSC：逻辑 realm ---
+
+enum CreateRealmStatus {
+	CREATE_REALM_ACCEPTED         = 0;
+	CREATE_REALM_ALREADY_CREATING = 1;
+	CREATE_REALM_ALREADY_READY    = 2;
+	CREATE_REALM_FAILED           = 3;
 }
 
-message RpcRemoveDSReq{
-	string   dsID    = 1;
-}
-message RpcRemoveDSResp{
-	RpcHeader header   =1;
+message RpcCreateRealmReq {
+	string realmID    = 1;
+	string teamID     = 2;
+	string realmCfgID = 3;
 }
 
-// game dsc
+message RpcCreateRealmResp {
+	RpcHeader         header = 1;
+	CreateRealmStatus status = 2;
+	string            dsAddr = 3; // already_ready 时带回
+}
+
+message RpcRemoveRealmReq {
+	string realmID = 1;
+}
+
+message RpcRemoveRealmResp {
+	RpcHeader header = 1;
+}
+
 service RpcGameDsc {
-  rpc CreateDS (RpcCreateDSReq) returns (RpcCreateDSResp) {}
-  rpc RemoveDS (RpcRemoveDSReq) returns (RpcRemoveDSResp) {}
+  rpc CreateRealm (RpcCreateRealmReq) returns (RpcCreateRealmResp) {}
+  rpc RemoveRealm (RpcRemoveRealmReq) returns (RpcRemoveRealmResp) {}
 }
 
-message NatsEvent{
-   google.protobuf.Any NatsEventMsg = 1;
+// --- DSA → DSC：上报 ---
+
+message RegisterAgentReq {
+	string agentID  = 1;
+	string grpcAddr = 2;
+	int32  capacity = 3;
 }
 
-message StreamClientEvent{
-   google.protobuf.Any CEvent = 1;
+message RegisterAgentResp {
+	RpcHeader header = 1;
 }
 
-message StreamServerEvent {
-   google.protobuf.Any SEvent = 1;
+message AgentHeartbeatReq {
+	string agentID = 1;
+	int32  dsCount = 2;
 }
 
-message DSADSC_Hello{
-	string   agentName  = 1;
-}
-message DSCDSA_HelloACk{
-	string   agentName  = 1;
+message AgentHeartbeatResp {
+	RpcHeader header = 1;
 }
 
-message StreamCreateDS{
-	string   dsID       = 1;
-	string   realmCfgID = 3;  //
-}
-message StreamCreateDSResult{
-	string   dsID         = 1;
-	string   realmCfgID   = 2;  //
-	string   dsAddr       = 3;
-}
-message StreamRemoveDS{
-	string   dsID   = 1;
-}
-message StreamRemoveDSResult{
-	string   dsID    = 1;
+enum DSEventType {
+	DS_EVENT_READY         = 0;
+	DS_EVENT_PLAYER_ENTER  = 1;
+	DS_EVENT_START         = 2;
+	DS_EVENT_GAME_END      = 3;
+	DS_EVENT_DEAD          = 4;
 }
 
-service StreamDscDSA {
-  rpc StreamService(stream StreamClientEvent)returns(stream StreamServerEvent){}
+message ReportDSEventReq {
+	string      agentID    = 1;
+	string      dsID       = 2;
+	string      realmID    = 3;
+	DSEventType eventType  = 4;
+	string      dsAddr     = 5;
+	string      failReason = 6;
+}
+
+message ReportDSEventResp {
+	RpcHeader header = 1;
+}
+
+service RpcDsaReport {
+  rpc RegisterAgent (RegisterAgentReq) returns (RegisterAgentResp) {}
+  rpc Heartbeat (AgentHeartbeatReq) returns (AgentHeartbeatResp) {}
+  rpc ReportDSEvent (ReportDSEventReq) returns (ReportDSEventResp) {}
+}
+
+// --- DSC → DSA：ds 进程 ---
+
+message DsaCreateDSReq {
+	string dsID       = 1;
+	string realmID    = 2;
+	string realmCfgID = 3;
+}
+
+message DsaCreateDSResp {
+	RpcHeader header = 1;
+	string    dsAddr = 2;
+}
+
+message DsaRemoveDSReq {
+	string dsID = 1;
+}
+
+message DsaRemoveDSResp {
+	RpcHeader header = 1;
+}
+
+message DsaGetStatusReq {
+	string agentID = 1;
+}
+
+message DsaGetStatusResp {
+	RpcHeader header  = 1;
+	int32     dsCount = 2;
+}
+
+service RpcDsaAgent {
+  rpc CreateDS (DsaCreateDSReq) returns (DsaCreateDSResp) {}
+  rpc RemoveDS (DsaRemoveDSReq) returns (DsaRemoveDSResp) {}
+  rpc GetStatus (DsaGetStatusReq) returns (DsaGetStatusResp) {}
 }

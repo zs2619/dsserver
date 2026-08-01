@@ -43,7 +43,7 @@ func CreateUser(userID, platform string, uidObj primitive.ObjectID) (*UserType, 
 
 func GetUser(userID string) (*UserType, error) {
 	var result UserType
-	err := store.GetColl(store.UserColl).FindOne(context.Background(), bson.D{{"userID", userID}}).Decode(&result)
+	err := store.GetColl(store.UserColl).FindOne(context.Background(), bson.D{{Key: "userID", Value: userID}}).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func GetUser(userID string) (*UserType, error) {
 }
 
 func DelUser(userID string) error {
-	filter := bson.D{{"userID", userID}}
+	filter := bson.D{{Key: "userID", Value: userID}}
 	_, err := store.GetColl(store.UserColl).DeleteOne(context.TODO(), filter)
 	return err
 }

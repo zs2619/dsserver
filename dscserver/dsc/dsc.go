@@ -1,7 +1,7 @@
 package dsc
 
 import (
-	"dsservices/dscserver/dasdsc"
+	"dsservices/dscserver/dsareport"
 	"dsservices/dscserver/gamedsc"
 	"dsservices/pb"
 	"fmt"
@@ -14,8 +14,6 @@ import (
 type DSCServer struct {
 	port       int
 	grpcServer *grpc.Server
-
-	streamServerEventChan chan *pb.StreamServerEvent
 }
 
 var GDSCServer *DSCServer
@@ -23,18 +21,19 @@ var GDSCServer *DSCServer
 func (dscServer *DSCServer) Run() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", dscServer.port))
 	if err != nil {
-		logrus.WithError(err).Fatalf("failed to listen ")
+		logrus.WithError(err).Fatalf("failed to listen")
 	}
 	pb.RegisterRpcGameDscServer(dscServer.grpcServer, &gamedsc.RPCGameDscServer{})
-	pb.RegisterStreamDscDSAServer(dscServer.grpcServer, &dasdsc.RPCDasDscServer{})
+	pb.RegisterRpcDsaReportServer(dscServer.grpcServer, &dsareport.Server{})
+	logrus.WithField("port", dscServer.port).Info("dsc grpc serve")
 	dscServer.grpcServer.Serve(lis)
 }
 
 func NewDSCServer(port int) (dscServer *DSCServer, err error) {
-	var opts []grpc.ServerOption
 	dscServer = &DSCServer{
-		port: port,
+		port:       port,
+		grpcServer: grpc.NewServer(),
 	}
-	dscServer.grpcServer = grpc.NewServer(opts...)
+	GDSCServer = dscServer
 	return
 }

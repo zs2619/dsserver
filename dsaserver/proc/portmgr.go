@@ -27,8 +27,14 @@ func (this *PortMgr) GetValidPort() int {
 }
 
 func (this *PortMgr) ReleasePort(port int) {
+	if port <= 0 {
+		return
+	}
 	this.portMgrMute.Lock()
 	defer this.portMgrMute.Unlock()
 	index := port - poolSize
+	if index < 0 || index >= poolSize {
+		return
+	}
 	this.PortPool[index] = 0
 }

@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type DSInfoMgr struct {
@@ -35,11 +37,12 @@ type DSInfo struct {
 	LastUpdateTime time.Time
 	CurrTime       time.Time
 	DSID           string
+	RealmID        string
 	DSState        int
 	RealmCfgID     string
 }
 
-func NewDS(dsID, realmCfgID string) (dsInfo *DSInfo, err error) {
+func NewDS(dsID, realmID, realmCfgID string) (dsInfo *DSInfo, err error) {
 	procInfo, err := proc.StartProc(dsID, realmCfgID)
 	if err != nil {
 		return
@@ -49,13 +52,48 @@ func NewDS(dsID, realmCfgID string) (dsInfo *DSInfo, err error) {
 		LastUpdateTime: time.Now(),
 		CurrTime:       time.Now(),
 		DSID:           dsID,
+		RealmID:        realmID,
 		DSState:        DS_CreatIng,
 		RealmCfgID:     realmCfgID,
 		DSConn:         nil,
 	}
 	GDSInfoMgr.AddDS(dsInfo)
+	go watchDSProcess(dsInfo)
 	return
 }
+
+// watchDSProcess is the sole Waiter for the DS OS process.
+func watchDSProcess(ds *DSInfo) {
+	if ds.DsProcInfo == nil || ds.DsProcInfo.OSProcess == nil {
+		return
+	}
+	state, err := ds.DsProcInfo.OSProcess.Wait()
+	if err != nil {
+		logrus.WithError(err).WithField("dsID", ds.DSID).Warn("ds process wait error")
+	} else {
+		logrus.WithFields(logrus.Fields{"dsID": ds.DSID, "state": state}).Info("ds process exited")
+	}
+	ds = GDSInfoMgr.GetDSByID(ds.DSID)
+	if ds == nil {
+		return // already torn down (GAME_END / TCP disconnect / RemoveDS)
+	}
+	// Unexpected exit while still tracked: report DEAD so DSC releases capacity.
+	if GReportClient != nil {
+		reason := fmt.Sprintf("process exited before ready: %v", state)
+		if ds.DSState != DS_CreatIng {
+			reason = fmt.Sprintf("process exited: %v", state)
+		}
+		GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+			DsID:       ds.DSID,
+			RealmID:    ds.RealmID,
+			EventType:  pb.DSEventType_DS_EVENT_DEAD,
+			FailReason: reason,
+		})
+	}
+	GDSInfoMgr.DelDSByID(ds.DSID)
+}
+
+// KillDS signals process/conn stop. Port release + Wait live in DelDSByID / watchDSProcess.
 func (ds *DSInfo) KillDS() (err error) {
 	if ds.DSConn != nil {
 		ds.DSConn.Close()
@@ -86,6 +124,12 @@ func (ds *DSInfo) SetConnection(conn kissnet.IConnection) error {
 	return nil
 }
 
+func (dsMgr *DSInfoMgr) Count() int {
+	dsMgr.mutex.RLock()
+	defer dsMgr.mutex.RUnlock()
+	return int(dsMgr.num)
+}
+
 func (dsMgr *DSInfoMgr) GetDSByID(dsID string) *DSInfo {
 	dsMgr.mutex.RLock()
 	defer dsMgr.mutex.RUnlock()
@@ -94,6 +138,7 @@ func (dsMgr *DSInfoMgr) GetDSByID(dsID string) *DSInfo {
 	}
 	return nil
 }
+
 func (dsMgr *DSInfoMgr) GetDSByConn(conn kissnet.IConnection) *DSInfo {
 	dsMgr.mutex.RLock()
 	defer dsMgr.mutex.RUnlock()
@@ -111,6 +156,25 @@ func (dsMgr *DSInfoMgr) AddDS(dsInfo *DSInfo) error {
 	return nil
 }
 
+func (dsMgr *DSInfoMgr) DelDSByID(dsID string) {
+	dsMgr.mutex.Lock()
+	defer dsMgr.mutex.Unlock()
+	ds, ok := dsMgr.DSIDMgr[dsID]
+	if !ok {
+		return
+	}
+	dsMgr.num--
+	delete(dsMgr.DSIDMgr, dsID)
+	if ds.DSConn != nil {
+		delete(dsMgr.DSConnMgr, ds.DSConn)
+	}
+	// Sole port release point; zero Port so a later path cannot double-release.
+	if ds.DsProcInfo != nil && ds.DsProcInfo.Port > 0 {
+		proc.GPortMgr.ReleasePort(ds.DsProcInfo.Port)
+		ds.DsProcInfo.Port = 0
+	}
+}
+
 func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.IConnection) {
 	dsMgr.mutex.Lock()
 	defer dsMgr.mutex.Unlock()
@@ -119,7 +183,6 @@ func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.IConnection) {
 		return
 	}
 	dsMgr.num--
-
 	delete(dsMgr.DSConnMgr, conn)
 	delete(dsMgr.DSIDMgr, u.DSID)
 }

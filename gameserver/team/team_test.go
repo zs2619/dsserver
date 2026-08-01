@@ -2,6 +2,7 @@ package team_test
 
 import (
 	"dsservices/common"
+	"dsservices/config"
 	"dsservices/gameserver/team"
 	"dsservices/test"
 	"testing"
@@ -14,6 +15,7 @@ type TeamtilTestSuite struct {
 }
 
 func TestTeamessUtilTest(t *testing.T) {
+	config.GameConfig.Team.MatchTimeoutMs = 10000
 	team.InitScript()
 	suite.Run(t, new(TeamtilTestSuite))
 }
@@ -66,6 +68,7 @@ func (t *TeamtilTestSuite) TestTeam() {
 
 	common.OffSetTime = 120
 	team.UpdateTimeoutTeam()
+	common.OffSetTime = 0
 }
 
 func (t *TeamtilTestSuite) TestTeamStart() {
@@ -80,11 +83,9 @@ func (t *TeamtilTestSuite) TestTeamStart() {
 	teamUserMap, err := team.GetTimeoutTeam()
 	t.Nil(err)
 	t.Equal(len(teamUserMap), 1)
-
-	teamInfo, err := team.GetRealmTeam(teamID)
-	t.Nil(err)
-	t.Equal(teamInfo.TeamID, teamID)
-	t.Equal(teamInfo.RealmCfgID, realmCfgID)
-	t.Equal(teamInfo.State, int64(1))
-	t.Equal(teamInfo.UserIDList[0], userID)
+	for _, info := range teamUserMap {
+		t.Equal(info.RealmCfgID, realmCfgID)
+		t.Equal(info.UserIDList[0], userID)
+		t.Equal(info.ForceStart, int64(1))
+	}
 }

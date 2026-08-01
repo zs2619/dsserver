@@ -16,7 +16,29 @@ var GDSAServerCB DSAServerCB
 
 func (dsaCB *DSAServerCB) OnDisConectCB(conn kissnet.IConnection) error {
 	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
-	GDSInfoMgr.DelDSByConn(conn)
+	ds := GDSInfoMgr.GetDSByConn(conn)
+	if ds == nil {
+		GDSInfoMgr.DelDSByConn(conn)
+		return nil
+	}
+	// TCP 断开：上报 DEAD，释放 Redis 容量与 realm；避免仍 ready。
+	if GReportClient != nil {
+		reason := "ds tcp disconnected"
+		if ds.DSState == DS_CreatIng {
+			reason = "ds disconnected before CreateOK"
+		}
+		GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+			DsID:       ds.DSID,
+			RealmID:    ds.RealmID,
+			EventType:  pb.DSEventType_DS_EVENT_DEAD,
+			FailReason: reason,
+		})
+	}
+	// 先摘表（DelDSByID 依赖 ds.DSConn 清 DSConnMgr，故此处不能先置 nil），
+	// 再置 nil DSConn 防 KillDS.Close 二次进本回调重复报 DEAD。
+	GDSInfoMgr.DelDSByID(ds.DSID)
+	ds.DSConn = nil
+	_ = ds.KillDS()
 	return nil
 }
 

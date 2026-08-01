@@ -50,17 +50,15 @@ func StartProc(dsID, realmCfgID string) (*ProcInfo, error) {
 	return procInfo, nil
 }
 
+// KillProc only signals the process. Wait is owned solely by watchDSProcess
+// to avoid concurrent os.Process.Wait on the same process.
 func (proc *ProcInfo) KillProc() error {
-	defer func() {
-		processState, err := proc.OSProcess.Wait()
-		if err != nil {
-			logrus.WithError(errors.WithStack(err)).Error("KillProc error")
-		} else {
-			logrus.WithFields(logrus.Fields{
-				"pid":          proc.OSProcess.Pid,
-				"processState": processState,
-			}).Info("KillProc ok")
-		}
-	}()
-	return proc.OSProcess.Kill()
+	if proc == nil || proc.OSProcess == nil {
+		return nil
+	}
+	err := proc.OSProcess.Kill()
+	if err != nil {
+		logrus.WithError(errors.WithStack(err)).Error("KillProc error")
+	}
+	return err
 }

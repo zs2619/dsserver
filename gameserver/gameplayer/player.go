@@ -1,10 +1,10 @@
 package gameplayer
 
 import (
+	"bytes"
 	"dsservices/gameserver/playermodel"
 	"dsservices/kissnet"
 	"dsservices/pb"
-	"bytes"
 	"encoding/binary"
 	"fmt"
 
@@ -14,8 +14,11 @@ import (
 type GamePlayer struct {
 	UserID      string
 	TeamID      string
+	RealmID     string
 	Conn        kissnet.IConnection
 	PlayerModel *playermodel.PlayerModel
+	// disconnectedAtUnix, 0 if online. Set on disconnect for grace handling.
+	disconnectedAtUnix int64
 }
 
 func NewPlayer(playerModel *playermodel.PlayerModel, conn kissnet.IConnection) *GamePlayer {
