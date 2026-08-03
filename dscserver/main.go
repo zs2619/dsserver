@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"dsservices/common"
 	"dsservices/config"
 	"dsservices/dscserver/dsareport"
@@ -9,21 +10,18 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
+	"google.golang.org/grpc"
 )
 
 var g errgroup.Group
-
-func runHttpGM() error {
-	http.HandleFunc("/createRealm", func(w http.ResponseWriter, req *http.Request) {})
-	http.HandleFunc("/getInfo", func(w http.ResponseWriter, req *http.Request) {})
-	http.HandleFunc("/stopAll", func(w http.ResponseWriter, req *http.Request) {})
-	return http.ListenAndServe(":8888", nil)
-}
 
 func main() {
 	logrus.Info("dsc server start")
@@ -39,6 +37,7 @@ func main() {
 	defer store.RedisFinish()
 
 	common.InitCron()
+	defer common.FinishCron()
 	interval := config.GameConfig.Dsc.OrphanScanIntervalSec
 	if interval <= 0 {
 		interval = 30
@@ -57,17 +56,40 @@ func main() {
 		return
 	}
 
+	mux := http.NewServeMux()
+	mux.HandleFunc("/createRealm", func(w http.ResponseWriter, req *http.Request) {})
+	mux.HandleFunc("/getInfo", func(w http.ResponseWriter, req *http.Request) {})
+	mux.HandleFunc("/stopAll", func(w http.ResponseWriter, req *http.Request) {})
+	httpServer := &http.Server{Addr: ":8888", Handler: mux}
+
 	g.Go(func() error {
-		dscServer.Run()
-		return nil
+		err := dscServer.Run()
+		if err == nil || err == grpc.ErrServerStopped {
+			return nil
+		}
+		return err
 	})
 	g.Go(func() error {
-		return runHttpGM()
+		err := httpServer.ListenAndServe()
+		if err == http.ErrServerClosed {
+			return nil
+		}
+		return err
 	})
+
+	go func() {
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
+		<-sig
+		logrus.Info("shutdown signal received")
+		dscServer.Stop()
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = httpServer.Shutdown(ctx)
+	}()
 
 	if err := g.Wait(); err != nil {
 		logrus.WithError(errors.WithStack(err)).Fatal("g.wait")
 	}
-	common.FinishCron()
 	logrus.Info("dsc server end")
 }

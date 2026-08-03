@@ -24,7 +24,7 @@ func RegisterMsgMapFunc() {
 	msgMap[pb.DS2DSA_MsgID_DSUpdateState] = dsUpdateState
 }
 
-func dsCreateOK(conn kissnet.IConnection, msg []byte) error {
+func dsCreateOK(conn kissnet.Connection, msg []byte) error {
 	req := &pb.DS2DSA_CreateOK{}
 	err := proto.Unmarshal(msg, req)
 	if err != nil {

@@ -12,28 +12,35 @@ func init() {
 		return GPlayerMgr.GetPlayerByUserID(userID) != nil
 	}
 	realm.PushToLocalPlayers = func(userIDs []string, realmID, teamID, realmCfgID, dsAddr string) {
-		for _, uid := range userIDs {
-			p := GPlayerMgr.GetPlayerByUserID(uid)
-			if p == nil {
-				continue
+		// 拷贝切片，避免调用方并发改底层数组
+		uids := append([]string{}, userIDs...)
+		schedule(func() {
+			for _, uid := range uids {
+				p := GPlayerMgr.GetPlayerByUserID(uid)
+				if p == nil {
+					continue
+				}
+				p.TeamID = teamID
+				p.RealmID = realmID
+				_ = p.SendJoinRealmOKResp(teamID, realmCfgID, dsAddr)
 			}
-			p.TeamID = teamID
-			p.RealmID = realmID
-			_ = p.SendJoinRealmOKResp(teamID, realmCfgID, dsAddr)
-		}
+		})
 	}
 	realm.PushRealmFailToLocalPlayers = func(userIDs []string, realmID string) {
-		for _, uid := range userIDs {
-			p := GPlayerMgr.GetPlayerByUserID(uid)
-			if p == nil {
-				continue
+		uids := append([]string{}, userIDs...)
+		schedule(func() {
+			for _, uid := range uids {
+				p := GPlayerMgr.GetPlayerByUserID(uid)
+				if p == nil {
+					continue
+				}
+				if p.RealmID == realmID {
+					p.RealmID = ""
+				}
+				p.TeamID = ""
+				msg, _ := proto.Marshal(&pb.JoinRealmFailResp{})
+				_ = p.SendMsg(pb.S2C_MsgID_JoinRealmFail, msg)
 			}
-			if p.RealmID == realmID {
-				p.RealmID = ""
-			}
-			p.TeamID = ""
-			msg, _ := proto.Marshal(&pb.JoinRealmFailResp{})
-			_ = p.SendMsg(pb.S2C_MsgID_JoinRealmFail, msg)
-		}
+		})
 	}
 }

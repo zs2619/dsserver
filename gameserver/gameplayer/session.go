@@ -1,6 +1,8 @@
 package gameplayer
 
 import (
+	"fmt"
+
 	"dsservices/gameserver/playermodel"
 	"dsservices/gameserver/realm"
 	"dsservices/gameserver/user"
@@ -11,41 +13,53 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func LocalLogin(conn kissnet.IConnection, msgID pb.C2S_MsgID_MsgID, msg []byte) error {
+func LocalLogin(conn kissnet.Connection, msgID pb.C2S_MsgID_MsgID, msg []byte) error {
 	loginMsg := &pb.LocalLoginReq{}
-	err := proto.Unmarshal(msg, loginMsg)
-	if err != nil {
+	if err := proto.Unmarshal(msg, loginMsg); err != nil {
+		sendLoginFail(conn, LoginErrBadRequest)
 		return err
 	}
-	err = login(loginMsg.UserID, conn)
-	return err
+	if err := login(loginMsg.UserID, conn); err != nil {
+		sendLoginFail(conn, loginFailCode(err))
+		return err
+	}
+	return nil
 }
 
-func AuthLogin(conn kissnet.IConnection, msgID pb.C2S_MsgID_MsgID, msg []byte) error {
+func AuthLogin(conn kissnet.Connection, msgID pb.C2S_MsgID_MsgID, msg []byte) error {
 	//TODO:验证
 	loginMsg := &pb.AuthLoginReq{}
-	err := proto.Unmarshal(msg, loginMsg)
-	if err != nil {
+	if err := proto.Unmarshal(msg, loginMsg); err != nil {
+		sendLoginFail(conn, LoginErrBadRequest)
 		return err
 	}
-	userID := loginMsg.SessionID
-
-	err = login(userID, conn)
-	return err
+	if err := login(loginMsg.SessionID, conn); err != nil {
+		sendLoginFail(conn, loginFailCode(err))
+		return err
+	}
+	return nil
 }
 
-func login(userID string, conn kissnet.IConnection) error {
-	player := GPlayerMgr.GetPlayerByUserID(userID)
+func loginFailCode(err error) int64 {
+	if err == errLoginBadRequest {
+		return LoginErrBadRequest
+	}
+	return LoginErrInternal
+}
+
+var errLoginBadRequest = fmt.Errorf("login bad request")
+
+func login(userID string, conn kissnet.Connection) error {
+	if userID == "" {
+		return errLoginBadRequest
+	}
+	player, oldConn := GPlayerMgr.RebindConn(userID, conn)
 	if player != nil {
-		// Reconnect: cancel grace, adopt new conn.
-		GPlayerMgr.CancelReconnect(userID)
-		if player.Conn != nil {
-			player.Conn.Close()
+		if oldConn != nil {
+			oldConn.Close()
 		}
-		player.Conn = conn
-		GPlayerMgr.playerClientIDMgr[conn] = player
 	} else {
-		userRet, err := getUser(userID, user.PlatFormLocal, "ip")
+		userRet, err := getUser(userID, user.PlatFormLocal, kissnet.PeerIP(conn))
 		if err != nil {
 			return err
 		}

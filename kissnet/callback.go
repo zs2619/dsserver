@@ -1,13 +1,13 @@
 package kissnet
 
-type SessionOnConectCallBack interface {
-	OnConectCB(IConnection) error
+type SessionOnConnectCallback interface {
+	OnConnectCB(Connection) error
 }
-type SessionOnDisConectCallBack interface {
-	OnDisConectCB(IConnection) error
+type SessionOnDisconnectCallback interface {
+	OnDisconnectCB(Connection) error
 }
-type SessionCallBack interface {
-	SessionOnConectCallBack
-	SessionOnDisConectCallBack
-	OnMsgCB(IConnection, []byte) error
+type SessionCallback interface {
+	SessionOnConnectCallback
+	SessionOnDisconnectCallback
+	OnMsgCB(Connection, []byte) error
 }

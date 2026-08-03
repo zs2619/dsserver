@@ -5,6 +5,7 @@ import (
 	"dsservices/pb"
 	"fmt"
 	"net"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -14,6 +15,7 @@ type AgentServer struct {
 	pb.UnimplementedRpcDsaAgentServer
 	port       int
 	grpcServer *grpc.Server
+	stopOnce   sync.Once
 }
 
 func NewAgentServer(port int) *AgentServer {
@@ -34,9 +36,11 @@ func (s *AgentServer) Run() error {
 }
 
 func (s *AgentServer) Stop() {
-	if s.grpcServer != nil {
-		s.grpcServer.GracefulStop()
-	}
+	s.stopOnce.Do(func() {
+		if s.grpcServer != nil {
+			s.grpcServer.GracefulStop()
+		}
+	})
 }
 
 func (s *AgentServer) CreateDS(ctx context.Context, req *pb.DsaCreateDSReq) (*pb.DsaCreateDSResp, error) {

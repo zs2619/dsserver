@@ -1,7 +1,29 @@
+# 单元测试镜像。依赖 docker-compose.infra.yaml 网络 ds-infra 上的 Redis 集群 / Mongo。
+#
+# 构建：
+#   docker build -t ds-test -f Dockerfile.test --build-arg appname=dsservices .
+#
+# 运行（需先 make infra）：
+#   docker run --rm --network ds-infra ds-test
+#
+# 或：make unit_test
+
 FROM golang:1.26.5-bookworm
 
-ARG appname
-ENV Appname ${appname}
+ARG appname=dsservices
+ENV Appname=${appname}
 
-ADD . $GOPATH/src/$appname
-WORKDIR $GOPATH/src/$appname
+WORKDIR /src
+COPY . .
+
+# Redis 集群：多地址逗号分隔，go-redis UniversalClient 会走 Cluster 模式。
+# 注意：host:port，不要写 redis:// 前缀。
+ENV DS_CONFIGPATH=/src \
+	DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006 \
+	DS_MONGOURI=mongodb://mongodb-server:27017 \
+	DS_MONGODBNAME=ds_test \
+	DS_LOGLEVEL=info \
+	GOPROXY=https://goproxy.cn,direct
+
+# 优先 vendor；依赖就绪由 make infra（compose healthcheck + cluster init）保证
+CMD ["sh", "-c", "if [ -d vendor ]; then go test -mod=vendor -cover -race -parallel 1 -p 1 -count=1 -v ./...; else go test -cover -race -parallel 1 -p 1 -count=1 -v ./...; fi"]

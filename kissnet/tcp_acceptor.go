@@ -4,18 +4,20 @@ import (
 	"fmt"
 	"net"
 	"sync/atomic"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
-type TcpAcceptor struct {
-	Acceptor
+type TCPAcceptor struct {
+	acceptorBase
 	listener *net.TCPListener
 	Addr     *net.TCPAddr
 	running  int32
+	ne       *NetEvent
 }
 
-func NewTcpAcceptor(port int, cb SessionCallBack) (*TcpAcceptor, error) {
+func NewTCPAcceptor(port int, cb SessionCallback, ne *NetEvent) (*TCPAcceptor, error) {
 	if cb == nil {
 		return nil, fmt.Errorf("cb nil")
 	}
@@ -28,33 +30,66 @@ func NewTcpAcceptor(port int, cb SessionCallBack) (*TcpAcceptor, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &TcpAcceptor{Addr: tcpAddr, listener: ln, Acceptor: Acceptor{SessionCallBack: cb}}, nil
+	return &TCPAcceptor{Addr: tcpAddr, listener: ln, ne: ne, acceptorBase: acceptorBase{SessionCallback: cb}}, nil
 }
 
-func (acceptor *TcpAcceptor) Run() error {
-	acceptor.accept()
+// Start 非阻塞启动 accept；出错时关闭连接与 EventLoop。
+func (a *TCPAcceptor) Start() error {
+	go func() {
+		if err := a.accept(); err != nil {
+			logrus.WithError(err).Error("TCPAcceptor accept exited, shutting down")
+			_ = a.Close()
+			if !a.WaitConnectionsClosed(10 * time.Second) {
+				logrus.Warn("not all connections closed within grace period (accept error path)")
+			}
+			if a.ne != nil {
+				a.ne.Close()
+			}
+		}
+	}()
 	return nil
 }
 
-func (acceptor *TcpAcceptor) accept() {
-	atomic.StoreInt32(&acceptor.running, 1)
+// Run 阻塞 accept，出错时返回 error。
+func (a *TCPAcceptor) Run() error {
+	return a.accept()
+}
+
+func (a *TCPAcceptor) accept() error {
+	atomic.StoreInt32(&a.running, 1)
 	for {
-		tcpConn, err := acceptor.listener.AcceptTCP()
+		tcpConn, err := a.listener.AcceptTCP()
 		if err != nil {
-			logrus.WithError(err).WithFields(logrus.Fields{}).Error("TcpAcceptor::accept error")
-			return
+			if atomic.LoadInt32(&a.running) == 0 {
+				return nil
+			}
+			logrus.WithError(err).Error("TCPAcceptor::accept error")
+			return err
 		}
-		conn := NewConnection(tcpConn, acceptor.Acceptor.SessionCallBack)
-		go conn.start()
+		conn := NewConnection(tcpConn, a.SessionCallback, a.ne)
+		if !a.connMgr.add(conn) {
+			_ = tcpConn.Close()
+			continue
+		}
+		go func(c Connection) {
+			c.start()
+			a.connMgr.del(c)
+		}(conn)
 	}
 }
 
-func (acceptor *TcpAcceptor) Close() error {
-	acceptor.listener.Close()
-	atomic.StoreInt32(&acceptor.running, 0)
+func (a *TCPAcceptor) Close() error {
+	atomic.StoreInt32(&a.running, 0)
+	_ = a.listener.Close()
+	a.connMgr.CloseAll()
 	return nil
 }
 
-func (acceptor *TcpAcceptor) IsRunning() bool {
-	return atomic.LoadInt32(&acceptor.running) > 0
+// WaitConnectionsClosed 等待连接退出（含 OnDisconnectCB 入队），超时返回 false。
+func (a *TCPAcceptor) WaitConnectionsClosed(timeout time.Duration) bool {
+	return a.connMgr.WaitEmpty(timeout)
+}
+
+func (a *TCPAcceptor) IsRunning() bool {
+	return atomic.LoadInt32(&a.running) > 0
 }

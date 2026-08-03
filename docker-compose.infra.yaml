@@ -1,0 +1,272 @@
+# 独立 Redis 集群（6 节点：3 主 3 从）+ MongoDB，供本地开发 / 单元测试。
+# 用法：
+#   make infra          # 启动并初始化集群
+#   make infra-down
+#
+# 容器内（网络 ds-infra）访问：
+#   DS_REDISURI=redis-node-1:7001,redis-node-2:7001,redis-node-3:7001,redis-node-4:7001,redis-node-5:7001,redis-node-6:7001
+#   DS_MONGOURI=mongodb://mongodb-server:27017
+#   DS_MONGODBNAME=ds_test
+#
+# 说明：节点使用 cluster-announce-hostname，MOVED 重定向走容器名，
+# 适合同网络内容器访问（make unit_test）。宿主机直连集群需自行配 Host_IP 宣告（见 .devcontainer）。
+
+x-redis-common: &redis-common
+  image: redis:8.6.2
+  restart: unless-stopped
+  networks:
+    - ds-infra
+
+services:
+  redis-node-1:
+    <<: *redis-common
+    container_name: redis-node-1
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    command:
+      - redis-server
+      - --port
+      - "7001"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-1
+      - --cluster-announce-port
+      - "7001"
+      - --cluster-announce-bus-port
+      - "17001"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7001", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-node-2:
+    <<: *redis-common
+    container_name: redis-node-2
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    command:
+      - redis-server
+      - --port
+      - "7002"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-2
+      - --cluster-announce-port
+      - "7002"
+      - --cluster-announce-bus-port
+      - "17002"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7002", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-node-3:
+    <<: *redis-common
+    container_name: redis-node-3
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    command:
+      - redis-server
+      - --port
+      - "7003"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-3
+      - --cluster-announce-port
+      - "7003"
+      - --cluster-announce-bus-port
+      - "17003"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7003", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-node-4:
+    <<: *redis-common
+    container_name: redis-node-4
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+    command:
+      - redis-server
+      - --port
+      - "7004"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-4
+      - --cluster-announce-port
+      - "7004"
+      - --cluster-announce-bus-port
+      - "17004"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7004", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-node-5:
+    <<: *redis-common
+    container_name: redis-node-5
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+    command:
+      - redis-server
+      - --port
+      - "7005"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-5
+      - --cluster-announce-port
+      - "7005"
+      - --cluster-announce-bus-port
+      - "17005"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7005", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis-node-6:
+    <<: *redis-common
+    container_name: redis-node-6
+    ports:
+      - "7006:7006"
+      - "17006:17006"
+    command:
+      - redis-server
+      - --port
+      - "7006"
+      - --cluster-enabled
+      - "yes"
+      - --cluster-config-file
+      - nodes.conf
+      - --cluster-node-timeout
+      - "5000"
+      - --appendonly
+      - "yes"
+      - --cluster-announce-hostname
+      - redis-node-6
+      - --cluster-announce-port
+      - "7006"
+      - --cluster-announce-bus-port
+      - "17006"
+      - --cluster-preferred-endpoint-type
+      - hostname
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "7006", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # 一次性初始化集群（幂等：已 ok 则跳过）。profile=init，由 make infra 显式 run。
+  redis-cluster-init:
+    image: redis:8.6.2
+    container_name: redis-cluster-init
+    profiles: ["init"]
+    depends_on:
+      redis-node-1:
+        condition: service_healthy
+      redis-node-2:
+        condition: service_healthy
+      redis-node-3:
+        condition: service_healthy
+      redis-node-4:
+        condition: service_healthy
+      redis-node-5:
+        condition: service_healthy
+      redis-node-6:
+        condition: service_healthy
+    networks:
+      - ds-infra
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if redis-cli -h redis-node-1 -p 7001 cluster info 2>/dev/null | grep -q 'cluster_state:ok'; then
+          echo "Redis 集群已就绪，跳过初始化"
+          exit 0
+        fi
+        echo "创建 Redis 集群（3 主 3 从）..."
+        redis-cli --cluster create \
+          redis-node-1:7001 redis-node-2:7002 redis-node-3:7003 \
+          redis-node-4:7004 redis-node-5:7005 redis-node-6:7006 \
+          --cluster-replicas 1 --cluster-yes
+        echo "Redis 集群初始化完成"
+
+  mongodb-server:
+    image: mongo:8.0.28
+    container_name: mongodb-server
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    command: ["mongod", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    volumes:
+      - ds-mongo-data:/data/db
+    networks:
+      - ds-infra
+
+volumes:
+  ds-mongo-data:
+
+networks:
+  ds-infra:
+    name: ds-infra

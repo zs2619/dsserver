@@ -14,5 +14,8 @@ CMD tar -zcf - Dockerfile.run  \
 	Dockerfile_DSA.run \
 	Dockerfile_DSC.run \
 	game  \
-	dsc  \ 
-	dsa   
+	dsc  \
+	dsa  \
+	assets \
+	preStop.sh \
+	postStart.sh

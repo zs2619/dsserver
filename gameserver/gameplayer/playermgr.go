@@ -10,11 +10,11 @@ import (
 
 var GPlayerMgr *PlayerMgr = &PlayerMgr{
 	playerIDMgr:       make(map[string]*GamePlayer),
-	playerClientIDMgr: make(map[kissnet.IConnection]*GamePlayer),
+	playerClientIDMgr: make(map[kissnet.Connection]*GamePlayer),
 	num:               int64(0),
 }
 
-func ProcMsg(conn kissnet.IConnection, msgID int32, msg []byte) error {
+func ProcMsg(conn kissnet.Connection, msgID int32, msg []byte) error {
 	f, ok := msgMap[pb.C2S_MsgID_MsgID(msgID)]
 	if !ok {
 		return fmt.Errorf("(%d) msgID nil", msgID)
@@ -28,7 +28,7 @@ func ProcMsg(conn kissnet.IConnection, msgID int32, msg []byte) error {
 
 type PlayerMgr struct {
 	playerIDMgr       map[string]*GamePlayer
-	playerClientIDMgr map[kissnet.IConnection]*GamePlayer
+	playerClientIDMgr map[kissnet.Connection]*GamePlayer
 	num               int64
 	mutex             sync.RWMutex
 }
@@ -41,7 +41,7 @@ func (mgr *PlayerMgr) GetPlayerByUserID(userID string) *GamePlayer {
 	}
 	return nil
 }
-func (mgr *PlayerMgr) GetPlayerByClientID(conn kissnet.IConnection) *GamePlayer {
+func (mgr *PlayerMgr) GetPlayerByClientID(conn kissnet.Connection) *GamePlayer {
 	mgr.mutex.RLock()
 	defer mgr.mutex.RUnlock()
 	if v, ok := mgr.playerClientIDMgr[conn]; ok {
@@ -49,7 +49,7 @@ func (mgr *PlayerMgr) GetPlayerByClientID(conn kissnet.IConnection) *GamePlayer 
 	}
 	return nil
 }
-func (mgr *PlayerMgr) AddPlayer(p *GamePlayer, conn kissnet.IConnection) error {
+func (mgr *PlayerMgr) AddPlayer(p *GamePlayer, conn kissnet.Connection) error {
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
 	mgr.playerClientIDMgr[p.Conn] = p
@@ -58,7 +58,7 @@ func (mgr *PlayerMgr) AddPlayer(p *GamePlayer, conn kissnet.IConnection) error {
 	return nil
 }
 
-func (mgr *PlayerMgr) DelPlayer(conn kissnet.IConnection) {
+func (mgr *PlayerMgr) DelPlayer(conn kissnet.Connection) {
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
 	p, ok := mgr.playerClientIDMgr[conn]
@@ -74,7 +74,7 @@ func (mgr *PlayerMgr) DelPlayer(conn kissnet.IConnection) {
 
 // MarkDisconnected keeps the player in the registry (for reconnect) but flags it offline.
 // If the player is in a realm, the entry is retained until the grace window expires.
-func (mgr *PlayerMgr) MarkDisconnected(conn kissnet.IConnection, nowUnix int64) bool {
+func (mgr *PlayerMgr) MarkDisconnected(conn kissnet.Connection, nowUnix int64) bool {
 	mgr.mutex.Lock()
 	defer mgr.mutex.Unlock()
 	p, ok := mgr.playerClientIDMgr[conn]
@@ -124,4 +124,22 @@ func (mgr *PlayerMgr) CancelReconnect(userID string) {
 	if p, ok := mgr.playerIDMgr[userID]; ok {
 		p.disconnectedAtUnix = 0
 	}
+}
+
+// RebindConn 重连：清掉线标记并登记新连接。
+// 若有旧连接且不同于新连接，返回 oldConn，调用方须在锁外 Close，避免回调重入。
+func (mgr *PlayerMgr) RebindConn(userID string, conn kissnet.Connection) (player *GamePlayer, oldConn kissnet.Connection) {
+	mgr.mutex.Lock()
+	defer mgr.mutex.Unlock()
+	p, ok := mgr.playerIDMgr[userID]
+	if !ok {
+		return nil, nil
+	}
+	p.disconnectedAtUnix = 0
+	if p.Conn != nil && p.Conn != conn {
+		oldConn = p.Conn
+	}
+	p.Conn = conn
+	mgr.playerClientIDMgr[conn] = p
+	return p, oldConn
 }

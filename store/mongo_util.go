@@ -18,30 +18,30 @@ func DataUpdateSert(collection string, uidObj primitive.ObjectID, sets *bson.D, 
 	update := bson.D{}
 
 	if sets != nil {
-		update = append(update, bson.E{"$set", sets})
+		update = append(update, bson.E{Key: "$set", Value: sets})
 	}
 
 	if incs != nil {
-		update = append(update, bson.E{"$inc", incs})
+		update = append(update, bson.E{Key: "$inc", Value: incs})
 	}
 
 	if unsets != nil {
-		update = append(update, bson.E{"$unset", unsets})
+		update = append(update, bson.E{Key: "$unset", Value: unsets})
 	}
 
 	if pulls != nil {
-		update = append(update, bson.E{"$pull", pulls})
+		update = append(update, bson.E{Key: "$pull", Value: pulls})
 	}
 
 	if pushs != nil {
-		update = append(update, bson.E{"$push", pushs})
+		update = append(update, bson.E{Key: "$push", Value: pushs})
 	}
 	if pops != nil {
-		update = append(update, bson.E{"$pop", pops})
+		update = append(update, bson.E{Key: "$pop", Value: pops})
 	}
 
 	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{"_id", uidObj}}
+	filter := bson.D{{Key: "_id", Value: uidObj}}
 	_, err := GetColl(collection).UpdateOne(context.TODO(), filter, update, opts)
 	return err
 }
@@ -55,12 +55,11 @@ func DataInrSertSets(collection string, uidObj primitive.ObjectID, incs *bson.D)
 }
 
 func DataGetType(collection string, uidObj primitive.ObjectID, fields []string, result interface{}) error {
-	projection := bson.D{{"_id", 0}}
+	projection := bson.D{{Key: "_id", Value: 0}}
 	for _, field := range fields {
-		e := bson.E{Key: field, Value: 1}
-		projection = append(projection, e)
+		projection = append(projection, bson.E{Key: field, Value: 1})
 	}
-	filter := bson.D{{"_id", uidObj}}
+	filter := bson.D{{Key: "_id", Value: uidObj}}
 
 	opts := options.FindOne().SetProjection(projection)
 	err := GetColl(collection).FindOne(context.TODO(), filter, opts).Decode(result)
@@ -68,7 +67,7 @@ func DataGetType(collection string, uidObj primitive.ObjectID, fields []string, 
 }
 
 func DataRemove(collection string, uidObj primitive.ObjectID) error {
-	filter := bson.D{{"_id", uidObj}}
+	filter := bson.D{{Key: "_id", Value: uidObj}}
 	_, err := GetColl(collection).DeleteOne(context.TODO(), filter)
 	return err
 }
@@ -76,12 +75,11 @@ func DataRemove(collection string, uidObj primitive.ObjectID) error {
 func DataGet(collection string, uidObj primitive.ObjectID, fields ...string) (bson.M, error) {
 	result := bson.M{}
 
-	projection := bson.D{{"_id", 0}}
+	projection := bson.D{{Key: "_id", Value: 0}}
 	for _, field := range fields {
-		e := bson.E{Key: field, Value: 1}
-		projection = append(projection, e)
+		projection = append(projection, bson.E{Key: field, Value: 1})
 	}
-	filter := bson.D{{"_id", uidObj}}
+	filter := bson.D{{Key: "_id", Value: uidObj}}
 
 	opts := options.FindOne().SetProjection(projection)
 	err := GetColl(collection).FindOne(context.TODO(), filter, opts).Decode(&result)
@@ -93,11 +91,10 @@ const db_timeout = time.Millisecond * 500
 func DataGetMore(collection string, uidObj []primitive.ObjectID, fields []string, result interface{}) error {
 	projection := bson.D{}
 	for _, field := range fields {
-		e := bson.E{Key: field, Value: 1}
-		projection = append(projection, e)
+		projection = append(projection, bson.E{Key: field, Value: 1})
 	}
 
-	filter := bson.D{{"_id", bson.D{{"$in", uidObj}}}}
+	filter := bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: uidObj}}}}
 
 	opts := options.Find().SetProjection(projection)
 
@@ -129,9 +126,9 @@ func DataGetMoreByUIDStr(collection string, uidObj []string, fields []string, re
 }
 
 func DataAddToSets(collection string, objectID primitive.ObjectID, fields string, value string) error {
-	update := bson.D{bson.E{"$addToSet", bson.D{{fields, value}}}}
+	update := bson.D{bson.E{Key: "$addToSet", Value: bson.D{{Key: fields, Value: value}}}}
 	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{"_id", objectID}}
+	filter := bson.D{{Key: "_id", Value: objectID}}
 	_, err := GetColl(collection).UpdateOne(context.TODO(), filter, update, opts)
 	return err
 }

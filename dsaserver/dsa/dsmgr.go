@@ -15,14 +15,14 @@ import (
 
 type DSInfoMgr struct {
 	DSIDMgr   map[string]*DSInfo
-	DSConnMgr map[kissnet.IConnection]*DSInfo
+	DSConnMgr map[kissnet.Connection]*DSInfo
 	num       int64
 	mutex     sync.RWMutex
 }
 
 var GDSInfoMgr *DSInfoMgr = &DSInfoMgr{
 	DSIDMgr:   make(map[string]*DSInfo),
-	DSConnMgr: make(map[kissnet.IConnection]*DSInfo),
+	DSConnMgr: make(map[kissnet.Connection]*DSInfo),
 	num:       int64(0),
 }
 
@@ -32,7 +32,7 @@ const (
 )
 
 type DSInfo struct {
-	DSConn         kissnet.IConnection
+	DSConn         kissnet.Connection
 	DsProcInfo     *proc.ProcInfo
 	LastUpdateTime time.Time
 	CurrTime       time.Time
@@ -111,16 +111,28 @@ func (ds *DSInfo) SendMsg(msgID pb.DSA2DS_MsgID_MsgID, msg []byte) error {
 	if ds.DSConn == nil {
 		return fmt.Errorf("this.Conn == nil")
 	}
-	ds.DSConn.SendMsg(sendMsg)
-	return nil
+	return ds.DSConn.SendMsg(sendMsg)
 }
 
-func (ds *DSInfo) SetConnection(conn kissnet.IConnection) error {
-	if conn == nil {
-		return fmt.Errorf("conn nil")
+func (ds *DSInfo) SetConnection(conn kissnet.Connection) error {
+	return GDSInfoMgr.BindConn(ds, conn)
+}
+
+// BindConn 在锁下登记 DS 的 TCP 连接。
+func (m *DSInfoMgr) BindConn(ds *DSInfo, conn kissnet.Connection) error {
+	if ds == nil || conn == nil {
+		return fmt.Errorf("ds/conn nil")
+	}
+	m.mutex.Lock()
+	defer m.mutex.Unlock()
+	if _, ok := m.DSIDMgr[ds.DSID]; !ok {
+		return fmt.Errorf("ds not tracked")
+	}
+	if ds.DSConn != nil && ds.DSConn != conn {
+		delete(m.DSConnMgr, ds.DSConn)
 	}
 	ds.DSConn = conn
-	GDSInfoMgr.DSConnMgr[ds.DSConn] = ds
+	m.DSConnMgr[conn] = ds
 	return nil
 }
 
@@ -139,7 +151,7 @@ func (dsMgr *DSInfoMgr) GetDSByID(dsID string) *DSInfo {
 	return nil
 }
 
-func (dsMgr *DSInfoMgr) GetDSByConn(conn kissnet.IConnection) *DSInfo {
+func (dsMgr *DSInfoMgr) GetDSByConn(conn kissnet.Connection) *DSInfo {
 	dsMgr.mutex.RLock()
 	defer dsMgr.mutex.RUnlock()
 	if v, ok := dsMgr.DSConnMgr[conn]; ok {
@@ -175,7 +187,7 @@ func (dsMgr *DSInfoMgr) DelDSByID(dsID string) {
 	}
 }
 
-func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.IConnection) {
+func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.Connection) {
 	dsMgr.mutex.Lock()
 	defer dsMgr.mutex.Unlock()
 	u, ok := dsMgr.DSConnMgr[conn]
@@ -185,4 +197,32 @@ func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.IConnection) {
 	dsMgr.num--
 	delete(dsMgr.DSConnMgr, conn)
 	delete(dsMgr.DSIDMgr, u.DSID)
+}
+
+// ShutdownAll 退出时杀掉全部 DS：先报 DEAD 再摘表再 Kill（Wait 仍由 watchDSProcess 独占）。
+// 可重复调用；第二次为空操作。
+func (dsMgr *DSInfoMgr) ShutdownAll() {
+	dsMgr.mutex.Lock()
+	list := make([]*DSInfo, 0, len(dsMgr.DSIDMgr))
+	for _, ds := range dsMgr.DSIDMgr {
+		list = append(list, ds)
+	}
+	dsMgr.mutex.Unlock()
+
+	for _, ds := range list {
+		logrus.WithField("dsID", ds.DSID).Info("shutdown: killing DS")
+		if GReportClient != nil {
+			GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+				DsID:       ds.DSID,
+				RealmID:    ds.RealmID,
+				EventType:  pb.DSEventType_DS_EVENT_DEAD,
+				FailReason: "dsa shutdown",
+			})
+		}
+		// 先摘表，避免 Kill 触发的 OnDisconnect / Wait 再报一次 DEAD。
+		dsMgr.DelDSByID(ds.DSID)
+		if err := ds.KillDS(); err != nil {
+			logrus.WithError(err).WithField("dsID", ds.DSID).Warn("shutdown KillDS")
+		}
+	}
 }

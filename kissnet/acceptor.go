@@ -2,26 +2,28 @@ package kissnet
 
 import (
 	"fmt"
+	"time"
 )
 
-type IAcceptor interface {
+type Acceptor interface {
+	Start() error
 	Run() error
 	Close() error
+	WaitConnectionsClosed(timeout time.Duration) bool
 	IsRunning() bool
 }
 
-type Acceptor struct {
-	CMgr ConnectionMgr
-	SessionCallBack
+type acceptorBase struct {
+	connMgr ConnectionMgr
+	SessionCallback
 }
 
-func AcceptorFactory(acceptorType string, port int, cb SessionCallBack) (IAcceptor, error) {
+// NewAcceptor 按类型创建监听器，目前仅支持 tcp。
+func NewAcceptor(acceptorType string, port int, cb SessionCallback, ne *NetEvent) (Acceptor, error) {
 	if acceptorType == "ws" {
-		// return NewWSAcceptor(port, cb)
-		return nil, nil
+		return nil, fmt.Errorf("ws acceptor not implemented")
 	} else if acceptorType == "tcp" {
-		return NewTcpAcceptor(port, cb)
-	} else {
-		return nil, fmt.Errorf("config AcceptorType error")
+		return NewTCPAcceptor(port, cb, ne)
 	}
+	return nil, fmt.Errorf("config AcceptorType error")
 }

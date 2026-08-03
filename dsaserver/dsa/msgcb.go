@@ -14,8 +14,8 @@ type DSAServerCB struct {
 
 var GDSAServerCB DSAServerCB
 
-func (dsaCB *DSAServerCB) OnDisConectCB(conn kissnet.IConnection) error {
-	logrus.WithFields(logrus.Fields{}).Info("OnDisConectCB")
+func (dsaCB *DSAServerCB) OnDisconnectCB(conn kissnet.Connection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnDisconnectCB")
 	ds := GDSInfoMgr.GetDSByConn(conn)
 	if ds == nil {
 		GDSInfoMgr.DelDSByConn(conn)
@@ -42,12 +42,12 @@ func (dsaCB *DSAServerCB) OnDisConectCB(conn kissnet.IConnection) error {
 	return nil
 }
 
-func (dsaCB *DSAServerCB) OnConectCB(conn kissnet.IConnection) error {
-	logrus.WithFields(logrus.Fields{}).Info("OnConectCB")
+func (dsaCB *DSAServerCB) OnConnectCB(conn kissnet.Connection) error {
+	logrus.WithFields(logrus.Fields{}).Info("OnConnectCB")
 	return nil
 }
 
-func (dsaCB *DSAServerCB) OnMsgCB(conn kissnet.IConnection, msg []byte) error {
+func (dsaCB *DSAServerCB) OnMsgCB(conn kissnet.Connection, msg []byte) error {
 	if msg == nil {
 		return nil
 	}
@@ -63,7 +63,7 @@ func (dsaCB *DSAServerCB) OnMsgCB(conn kissnet.IConnection, msg []byte) error {
 
 	return nil
 }
-func ProcDSMsg(conn kissnet.IConnection, msgID pb.DS2DSA_MsgID_MsgID, msg []byte) error {
+func ProcDSMsg(conn kissnet.Connection, msgID pb.DS2DSA_MsgID_MsgID, msg []byte) error {
 	if msgID == pb.DS2DSA_MsgID_DSCreateOK {
 		err := dsCreateOK(conn, msg)
 		return err

@@ -11,9 +11,9 @@
                 "DS_CONFIGPATH": "${workspaceFolder}",
                 "DS_GS_PORT": "20000",
                 "DS_DSC_GRPC_URI": "127.0.0.1:10000",
-                "DS_MONGOURI": "mongodb://172.17.0.1:27017",
+                "DS_MONGOURI": "mongodb://mongodb-server:27017",
                 "DS_MONGODBNAME": "ds",
-                "DS_REDISURI": "172.17.0.1:7001,172.17.0.1:7002"
+                "DS_REDISURI": "redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006"
             },
             "args": [],
             "showLog": true
@@ -27,7 +27,7 @@
             "env": {
                 "DS_CONFIGPATH": "${workspaceFolder}",
                 "DS_DSC_PORT": "10000",
-                "DS_REDISURI": "172.17.0.1:7001,172.17.0.1:7002"
+                "DS_REDISURI": "redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006"
             },
             "args": [],
             "showLog": true

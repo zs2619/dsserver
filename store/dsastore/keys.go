@@ -16,18 +16,23 @@ const (
 	AgentStateOnline  = "online"
 	AgentStateOffline = "offline"
 
+	// Hash tags (Redis Cluster):
+	//   {realm} — realm hash / uidList / user→realm / realm2ds / realmIndex
+	//             同槽，供 TryClaim / WriteSkeleton / Cleanup 原子脚本与 pipeline。
+	//   {dsc}   — agent / ds meta / dsIndex（选机与 DS 生命周期）。
+	// 跨槽操作（如 CreateDSMeta）必须拆成两次命令，不可混 KEYS / 同 pipeline。
 	realmKeyPrefix     = "{realm}_"
 	realmUidListSuffix = "_uidList"
 	realmUserKeyPrefix = "{realm}u:"
+	realm2DSKeyPref    = "{realm}2ds:"
+	realmIndexKey      = "{realm}Index"
 	realmReadyChannel  = "realm:ready:"
 	realmFailChannel   = "realm:fail:"
 
-	dsKeyPrefix     = "{dsc}ds:"
-	realm2DSKeyPref = "{dsc}realm2ds:"
-	agentKeyPrefix  = "{dsc}agent:"
-	agentsZSetKey   = "{dsc}agents"
-	dsIndexKey      = "{dsc}dsIndex"
-	realmIndexKey   = "{dsc}realmIndex"
+	dsKeyPrefix    = "{dsc}ds:"
+	agentKeyPrefix = "{dsc}agent:"
+	agentsZSetKey  = "{dsc}agents"
+	dsIndexKey     = "{dsc}dsIndex"
 
 	// RealmAllocField: HSETNX 占位，防同一 realm 并发分配双开 DS
 	RealmAllocField = "alloc"

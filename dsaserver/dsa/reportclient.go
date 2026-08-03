@@ -4,7 +4,7 @@ import (
 	"context"
 	"dsservices/config"
 	"dsservices/pb"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -15,13 +15,14 @@ import (
 var GReportClient *ReportClient
 
 type ReportClient struct {
-	agentID  string
-	grpcAddr string // this DSA advertise addr for DSC callbacks
-	dscURI   string
-	conn     *grpc.ClientConn
-	client   pb.RpcDsaReportClient
-	quit     atomic.Bool
-	capacity int32
+	agentID   string
+	grpcAddr  string // this DSA advertise addr for DSC callbacks
+	dscURI    string
+	conn      *grpc.ClientConn
+	client    pb.RpcDsaReportClient
+	quit      chan struct{}
+	closeOnce sync.Once
+	capacity  int32
 }
 
 func NewReportClient(agentID, dscURI, advertiseAddr string) (*ReportClient, error) {
@@ -41,6 +42,7 @@ func NewReportClient(agentID, dscURI, advertiseAddr string) (*ReportClient, erro
 		conn:     conn,
 		client:   pb.NewRpcDsaReportClient(conn),
 		capacity: 100,
+		quit:     make(chan struct{}),
 	}
 	GReportClient = rc
 	return rc, nil
@@ -71,8 +73,12 @@ func (rc *ReportClient) RunHeartbeat() {
 	}
 	ticker := time.NewTicker(time.Duration(interval) * time.Second)
 	defer ticker.Stop()
-	for !rc.quit.Load() {
-		<-ticker.C
+	for {
+		select {
+		case <-rc.quit:
+			return
+		case <-ticker.C:
+		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		_, err := rc.client.Heartbeat(ctx, &pb.AgentHeartbeatReq{
 			AgentID: rc.agentID,
@@ -99,8 +105,10 @@ func (rc *ReportClient) ReportDSEvent(req *pb.ReportDSEventReq) {
 }
 
 func (rc *ReportClient) Close() {
-	rc.quit.Store(true)
-	if rc.conn != nil {
-		rc.conn.Close()
-	}
+	rc.closeOnce.Do(func() {
+		close(rc.quit)
+		if rc.conn != nil {
+			_ = rc.conn.Close()
+		}
+	})
 }

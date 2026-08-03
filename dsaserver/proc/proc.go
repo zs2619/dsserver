@@ -28,6 +28,9 @@ func formatDSArgv(cmdName, dsID, realmCfgID string, port int) []string {
 
 func StartProc(dsID, realmCfgID string) (*ProcInfo, error) {
 	port := GPortMgr.GetValidPort()
+	if port <= 0 {
+		return nil, fmt.Errorf("no available port")
+	}
 	cmdName := config.GameConfig.DSPath
 	argv := formatDSArgv(cmdName, dsID, realmCfgID, port)
 
@@ -38,16 +41,16 @@ func StartProc(dsID, realmCfgID string) (*ProcInfo, error) {
 	}
 	osProcess, err := os.StartProcess(cmdName, argv, procAttr)
 	if err != nil {
+		GPortMgr.ReleasePort(port)
 		return nil, err
 	}
 
-	procInfo := &ProcInfo{
+	return &ProcInfo{
 		Port:       port,
 		Ip:         config.GameConfig.IP,
 		RealmCfgID: realmCfgID,
-		OSProcess:  osProcess}
-
-	return procInfo, nil
+		OSProcess:  osProcess,
+	}, nil
 }
 
 // KillProc only signals the process. Wait is owned solely by watchDSProcess

@@ -20,7 +20,8 @@ const (
 )
 
 func mongoConnect(mongoDBURI, mongoDBName string) (*mongo.Database, error) {
-	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	clientOptions := options.Client().
 		ApplyURI(mongoDBURI).
 		SetMinPoolSize(100)
@@ -42,9 +43,7 @@ func mongoConnect(mongoDBURI, mongoDBName string) (*mongo.Database, error) {
 		"dbName": mongoDBName,
 	}).Info("mongoConnect")
 
-	MongoDB := client.Database(mongoDBName)
-	return MongoDB, err
-
+	return client.Database(mongoDBName), nil
 }
 func MongoInit() error {
 	mongoDBURI := os.Getenv("DS_MONGOURI")
@@ -86,7 +85,7 @@ func createUserIndex() error {
 	indexOptions.SetUnique(true)
 	models := []mongo.IndexModel{
 		{
-			Keys:    bson.D{{"userID", 1}},
+			Keys:    bson.D{{Key: "userID", Value: 1}},
 			Options: indexOptions,
 		},
 	}
@@ -99,7 +98,7 @@ func createPlayerIndex() error {
 	indexOptions.SetUnique(true)
 	models := []mongo.IndexModel{
 		{
-			Keys:    bson.D{{"userID", 1}},
+			Keys:    bson.D{{Key: "userID", Value: 1}},
 			Options: indexOptions,
 		},
 	}

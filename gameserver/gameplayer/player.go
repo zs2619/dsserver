@@ -15,13 +15,13 @@ type GamePlayer struct {
 	UserID      string
 	TeamID      string
 	RealmID     string
-	Conn        kissnet.IConnection
+	Conn        kissnet.Connection
 	PlayerModel *playermodel.PlayerModel
 	// disconnectedAtUnix, 0 if online. Set on disconnect for grace handling.
 	disconnectedAtUnix int64
 }
 
-func NewPlayer(playerModel *playermodel.PlayerModel, conn kissnet.IConnection) *GamePlayer {
+func NewPlayer(playerModel *playermodel.PlayerModel, conn kissnet.Connection) *GamePlayer {
 	player := &GamePlayer{
 		UserID:      playerModel.UserID,
 		Conn:        conn,
@@ -46,8 +46,7 @@ func (player *GamePlayer) SendMsg(msgID pb.S2C_MsgID_MsgID, msg []byte) error {
 	if player.Conn == nil {
 		return fmt.Errorf("this.Conn == nil")
 	}
-	player.Conn.SendMsg(sendMsg)
-	return nil
+	return player.Conn.SendMsg(sendMsg)
 }
 func (player *GamePlayer) GetPlayerModelPB() *pb.PlayerModel {
 	retPB := &pb.PlayerModel{

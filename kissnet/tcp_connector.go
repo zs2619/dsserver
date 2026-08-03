@@ -5,7 +5,7 @@ import (
 	"net"
 )
 
-func TcpConnector(addr string, cb SessionCallBack) (IConnection, error) {
+func TCPConnector(addr string, cb SessionCallback, ne *NetEvent) (Connection, error) {
 	if cb == nil {
 		return nil, fmt.Errorf("cb nil")
 	}
@@ -17,7 +17,7 @@ func TcpConnector(addr string, cb SessionCallBack) (IConnection, error) {
 	if err != nil {
 		return nil, err
 	}
-	c := NewConnection(conn, cb)
+	c := NewConnection(conn, cb, ne)
 	go c.start()
 	return c, nil
 }

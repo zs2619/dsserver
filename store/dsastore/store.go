@@ -113,16 +113,26 @@ type RealmInfo struct {
 func RegisterAgent(ctx context.Context, agentID, grpcAddr string, capacity int64) error {
 	now := time.Now().Unix()
 	key := AgentKey(agentID)
+	// DSA 重连时按仍占槽的 DS 重算 dsCount，避免一律清零导致容量账错。
+	dsCount := int64(0)
+	if list, err := ListDSByAgent(ctx, agentID); err == nil {
+		for _, ds := range list {
+			switch ds.State {
+			case DSStateCreating, DSStateReady, DSStatePlaying:
+				dsCount++
+			}
+		}
+	}
 	pipe := store.RedisClient.Pipeline()
 	pipe.HSet(ctx, key, map[string]interface{}{
 		"agentID":   agentID,
 		"grpcAddr":  grpcAddr,
 		"capacity":  capacity,
-		"dsCount":   0,
+		"dsCount":   dsCount,
 		"heartbeat": now,
 		"state":     AgentStateOnline,
 	})
-	pipe.ZAdd(ctx, agentsZSetKey, redis.Z{Score: 0, Member: agentID})
+	pipe.ZAdd(ctx, agentsZSetKey, redis.Z{Score: float64(dsCount), Member: agentID})
 	_, err := pipe.Exec(ctx)
 	return err
 }
@@ -299,6 +309,7 @@ func GenerateDSID() string {
 // CreateDSMeta 写入 ds 元数据并绑定 realm2ds。
 // 调用前须已 ReserveOptimalAgent（容量已预占），此处不再 HIncrBy dsCount。
 // 若 GS 已 CleanupRealm，拒绝写入以免复活残片 hash。
+// Cluster：{dsc} 与 {realm} 分槽，分两步写；realm 侧失败则回滚 dsc 侧（不 ReleaseAgentSlot，由调用方负责）。
 func CreateDSMeta(ctx context.Context, dsID, realmID, agentID, realmCfgID string) error {
 	exists, err := store.RedisClient.Exists(ctx, RealmKey(realmID)).Result()
 	if err != nil {
@@ -308,9 +319,8 @@ func CreateDSMeta(ctx context.Context, dsID, realmID, agentID, realmCfgID string
 		return fmt.Errorf("realm gone: %s", realmID)
 	}
 	now := time.Now().Unix()
-	key := DSKey(dsID)
-	pipe := store.RedisClient.Pipeline()
-	pipe.HSet(ctx, key, map[string]interface{}{
+	dsPipe := store.RedisClient.Pipeline()
+	dsPipe.HSet(ctx, DSKey(dsID), map[string]interface{}{
 		"dsID":       dsID,
 		"realmID":    realmID,
 		"agentID":    agentID,
@@ -319,11 +329,20 @@ func CreateDSMeta(ctx context.Context, dsID, realmID, agentID, realmCfgID string
 		"state":      DSStateCreating,
 		"updatedAt":  now,
 	})
-	pipe.HSet(ctx, RealmKey(realmID), "dsID", dsID, "updatedAt", now)
-	pipe.Set(ctx, Realm2DSKey(realmID), dsID, 0)
-	pipe.SAdd(ctx, dsIndexKey, dsID)
-	_, err = pipe.Exec(ctx)
-	return err
+	dsPipe.SAdd(ctx, dsIndexKey, dsID)
+	if _, err = dsPipe.Exec(ctx); err != nil {
+		return err
+	}
+
+	realmPipe := store.RedisClient.Pipeline()
+	realmPipe.HSet(ctx, RealmKey(realmID), "dsID", dsID, "updatedAt", now)
+	realmPipe.Set(ctx, Realm2DSKey(realmID), dsID, 0)
+	if _, err = realmPipe.Exec(ctx); err != nil {
+		_ = store.RedisClient.Del(ctx, DSKey(dsID)).Err()
+		_ = store.RedisClient.SRem(ctx, dsIndexKey, dsID).Err()
+		return err
+	}
+	return nil
 }
 
 func GetDS(ctx context.Context, dsID string) (*DSInfo, error) {
@@ -409,12 +428,13 @@ func DeleteDSMeta(ctx context.Context, dsID string) error {
 	if err != nil || ds == nil {
 		return err
 	}
+	// {dsc} 与 {realm}2ds 分槽，先解绑再删 DS。
+	if ds.RealmID != "" {
+		_ = store.RedisClient.Del(ctx, Realm2DSKey(ds.RealmID)).Err()
+	}
 	pipe := store.RedisClient.Pipeline()
 	delCmd := pipe.Del(ctx, DSKey(dsID))
 	pipe.SRem(ctx, dsIndexKey, dsID)
-	if ds.RealmID != "" {
-		pipe.Del(ctx, Realm2DSKey(ds.RealmID))
-	}
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		return err
@@ -496,9 +516,11 @@ func MarkRealmReady(ctx context.Context, realmID, dsID, dsAddr string) error {
 		"updatedAt": now,
 	})
 	pipe.HDel(ctx, key, RealmAllocField)
-	pipe.Publish(ctx, RealmReadyChan(realmID), string(payload))
-	_, err = pipe.Exec(ctx)
-	return err
+	if _, err = pipe.Exec(ctx); err != nil {
+		return err
+	}
+	// PUBLISH 频道无 {realm} 槽标签，Cluster 下不可与 realm KEY 同 pipeline。
+	return store.RedisClient.Publish(ctx, RealmReadyChan(realmID), string(payload)).Err()
 }
 
 func MarkRealmFail(ctx context.Context, realmID, reason string) error {
@@ -517,9 +539,10 @@ func MarkRealmFail(ctx context.Context, realmID, reason string) error {
 		"updatedAt":  now,
 	})
 	pipe.HDel(ctx, key, RealmAllocField)
-	pipe.Publish(ctx, RealmFailChan(realmID), string(payload))
-	_, err = pipe.Exec(ctx)
-	return err
+	if _, err = pipe.Exec(ctx); err != nil {
+		return err
+	}
+	return store.RedisClient.Publish(ctx, RealmFailChan(realmID), string(payload)).Err()
 }
 
 func MarkRealmInGame(ctx context.Context, realmID string) error {

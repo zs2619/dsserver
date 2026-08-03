@@ -1,4 +1,11 @@
-version: "3.0"
+# 业务服务：GS / DSC / DSA
+# 依赖 docker-compose.infra.yaml（网络 ds-infra、Redis 集群、Mongo）。
+# 用法：
+#   make infra
+#   docker compose up -d --build
+#
+# RedisInit 要求 DS_REDISURI 为 host:port 列表（不要 redis:// 前缀）。
+
 services:
   gameserver:
     build:
@@ -9,14 +16,17 @@ services:
       - DS_CONFIGPATH=/
       - DS_MONGOURI=mongodb://mongodb-server:27017
       - DS_MONGODBNAME=ds
-      - DS_REDISURI=redis://redis-server:16379
+      - DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
       - DS_GS_PORT=20000
       - DS_DSC_GRPC_URI=dscserver:10000
     ports:
-      - 20000:20000
+      - "20000:20000"
     depends_on:
       - dsaserver
       - dscserver
+    networks:
+      - ds-infra
+
   dscserver:
     build:
       context: .
@@ -25,9 +35,12 @@ services:
     environment:
       - DS_CONFIGPATH=/
       - DS_DSC_PORT=10000
-      - DS_REDISURI=redis://redis-server:16379
+      - DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
     ports:
-      - 10000:10000
+      - "10000:10000"
+    networks:
+      - ds-infra
+
   dsaserver:
     build:
       context: .
@@ -41,7 +54,14 @@ services:
       - DS_DSC_GRPC_URI=dscserver:10000
       - DS_DSA_AgentID=AgentID0
     ports:
-      - 11000:11000
-      - 12000:12000
+      - "11000:11000"
+      - "12000:12000"
     depends_on:
       - dscserver
+    networks:
+      - ds-infra
+
+networks:
+  ds-infra:
+    external: true
+    name: ds-infra

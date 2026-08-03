@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"dsservices/kissnet"
 	"dsservices/test"
+	"net"
 	"testing"
 	"time"
 
@@ -18,33 +19,38 @@ func TestDSATest(t *testing.T) {
 	suite.Run(t, new(DSATestSuite))
 }
 
-type dummyIConnection struct {
-	kissnet.IConnection
+type dummyConnection struct {
+	kissnet.Connection
 }
 
-// Close implements kissnet.IConnection.
-func (d *dummyIConnection) Close() {
+// Close implements kissnet.Connection.
+func (d *dummyConnection) Close() {
 	panic("unimplemented")
 }
 
-// SendMsg implements kissnet.IConnection.
-func (d *dummyIConnection) SendMsg(msg *bytes.Buffer) error {
+// SendMsg implements kissnet.Connection.
+func (d *dummyConnection) SendMsg(msg *bytes.Buffer) error {
 	panic("unimplemented")
 }
 
-// getID implements kissnet.IConnection.
-func (d *dummyIConnection) getID() int64 {
+// getID implements kissnet.Connection.
+func (d *dummyConnection) getID() int64 {
 	panic("unimplemented")
 }
 
-// setID implements kissnet.IConnection.
-func (d *dummyIConnection) setID(id int64) {
+// setID implements kissnet.Connection.
+func (d *dummyConnection) setID(id int64) {
 	panic("unimplemented")
 }
 
-// start implements kissnet.IConnection.
-func (d *dummyIConnection) start() {
+// start implements kissnet.Connection.
+func (d *dummyConnection) start() {
 	panic("unimplemented")
+}
+
+// RemoteAddr implements kissnet.Connection.
+func (d *dummyConnection) RemoteAddr() net.Addr {
+	return nil
 }
 
 func (t *DSATestSuite) TestDSA() {
@@ -68,7 +74,7 @@ func (t *DSATestSuite) TestDSA() {
 
 	err = retDsInfo.SetConnection(nil)
 	t.NotNil(err)
-	dummyconn := &dummyIConnection{}
+	dummyconn := &dummyConnection{}
 	err = retDsInfo.SetConnection(dummyconn)
 	t.Nil(err)
 }

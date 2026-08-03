@@ -5,35 +5,42 @@ import (
 	"net"
 )
 
-type RpcConnector struct {
+type RPCConnector struct {
 	serviceName string
-	conn        IConnection
+	conn        Connection
 	addr        string
+	ne          *NetEvent
 }
 
-func (this *RpcConnector) start() error {
-	this.connect()
-	return nil
+func (c *RPCConnector) start() error {
+	return c.connect()
 }
 
-func (this *RpcConnector) connect() error {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", this.addr)
+func (c *RPCConnector) connect() error {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", c.addr)
 	if err != nil {
 		return err
 	}
-
-	c, err := net.DialTCP("tcp", nil, tcpAddr)
+	conn, err := net.DialTCP("tcp", nil, tcpAddr)
 	if err != nil {
 		return err
 	}
-	this.conn = NewConnection(c, nil)
-	this.conn.start()
-	return nil
-}
-func (this *RpcConnector) sendMsg(buf *bytes.Buffer) error {
+	c.conn = NewConnection(conn, nil, c.ne)
+	c.conn.start()
 	return nil
 }
 
-func (this *RpcConnector) Close() error {
+func (c *RPCConnector) sendMsg(buf *bytes.Buffer) error {
+	if c.conn == nil {
+		return errConnClosed
+	}
+	return c.conn.SendMsg(buf)
+}
+
+func (c *RPCConnector) Close() error {
+	if c.conn == nil {
+		return nil
+	}
+	c.conn.Close()
 	return nil
 }

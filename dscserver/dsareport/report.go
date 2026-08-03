@@ -19,11 +19,11 @@ func (s *Server) RegisterAgent(ctx context.Context, req *pb.RegisterAgentReq) (*
 	if req.AgentID == "" || req.GrpcAddr == "" {
 		return &pb.RegisterAgentResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: "agentID/grpcAddr required"}}, nil
 	}
-	cap := int64(req.Capacity)
-	if cap <= 0 {
-		cap = 100
+	capacity := int64(req.Capacity)
+	if capacity <= 0 {
+		capacity = 100
 	}
-	if err := dsastore.RegisterAgent(ctx, req.AgentID, req.GrpcAddr, cap); err != nil {
+	if err := dsastore.RegisterAgent(ctx, req.AgentID, req.GrpcAddr, capacity); err != nil {
 		logrus.WithError(err).Error("RegisterAgent")
 		return &pb.RegisterAgentResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: err.Error()}}, nil
 	}

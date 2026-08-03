@@ -61,12 +61,29 @@ test: export DS_LOGLEVEL=info
 test:
 	go test  -cover -race -parallel 1 -p 1 -count=1 -v ./... | sed '/PASS/s//$(shell printf "\033[32mPASS\033[0m")/' | sed '/FAIL/s//$(shell printf "\033[31mFAIL\033[0m")/' | sed '/coverage/s//$(shell printf "\033[32mcoverage\033[0m")/'
 
+# Redis 集群地址（与 docker-compose.infra.yaml / Dockerfile.test 一致）
+REDIS_CLUSTER_URI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
+
+# 启动 Redis 集群 + MongoDB，并执行集群初始化：make infra / make infra-down
+infra:
+	docker compose -f docker-compose.infra.yaml up -d --wait
+	docker compose -f docker-compose.infra.yaml --profile init run --rm redis-cluster-init
+
+infra-down:
+	docker compose -f docker-compose.infra.yaml --profile init down
+
+# 构建测试镜像，挂到 ds-infra 网络跑单测（连 Redis 集群）
 unit_test:
-	docker build --build-arg appname=$(BACKEND_APP_NAME) -t $(DOCKER_BUILD_IMAGE_TAG) \
+	$(MAKE) infra
+	docker build --build-arg appname=$(BACKEND_APP_NAME) -t $(DOCKER_BUILD_IMAGE_TAG)-test \
 		-f ./Dockerfile.test .
-	docker-compose up -d --build
-	docker logs -f ${DOCKER_BUILD_IMAGE_TAG} > unit_test.log
-	docker-compose down
+	docker run --rm --network ds-infra \
+		-e DS_CONFIGPATH=/src \
+		-e DS_REDISURI=$(REDIS_CLUSTER_URI) \
+		-e DS_MONGOURI=mongodb://mongodb-server:27017 \
+		-e DS_MONGODBNAME=ds_test \
+		-e DS_LOGLEVEL=info \
+		$(DOCKER_BUILD_IMAGE_TAG)-test | tee unit_test.log
 
 vet :
 	go vet ./...
