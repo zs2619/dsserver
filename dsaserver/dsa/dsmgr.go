@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,24 +32,29 @@ const (
 	DS_CreatOK
 )
 
+// GAdvertiseIP 是玩家可达 IP（container=status.hostIP，process=config dsIP），由 main.go 注入。
+var GAdvertiseIP string
+
 type DSInfo struct {
 	DSConn         kissnet.Connection
-	DsProcInfo     *proc.ProcInfo
+	Port           int // PortMgr 分配的游戏口（Fork 后无 OSProcess，口直接存此）
 	LastUpdateTime time.Time
 	CurrTime       time.Time
 	DSID           string
 	RealmID        string
 	DSState        int
 	RealmCfgID     string
+	PendingStop    bool // RemoveDS 时实例尚未 CreateOK：置 true，CreateOK 到即发 StopDS+Del
 }
 
+// NewDS 分配端口并请求模板 fork 一个实例。不再 os.StartProcess。
 func NewDS(dsID, realmID, realmCfgID string) (dsInfo *DSInfo, err error) {
-	procInfo, err := proc.StartProc(dsID, realmCfgID)
-	if err != nil {
-		return
+	port := proc.GPortMgr.GetValidPort()
+	if port <= 0 {
+		return nil, fmt.Errorf("no available port")
 	}
 	dsInfo = &DSInfo{
-		DsProcInfo:     procInfo,
+		Port:           port,
 		LastUpdateTime: time.Now(),
 		CurrTime:       time.Now(),
 		DSID:           dsID,
@@ -58,48 +64,24 @@ func NewDS(dsID, realmID, realmCfgID string) (dsInfo *DSInfo, err error) {
 		DSConn:         nil,
 	}
 	GDSInfoMgr.AddDS(dsInfo)
-	go watchDSProcess(dsInfo)
+	// GTemplateClient 全局非 nil；须查 IsReady（模板未连/已断）。
+	if GTemplateClient == nil || !GTemplateClient.IsReady() {
+		GDSInfoMgr.DelDSByID(dsID)
+		return nil, fmt.Errorf("template client not ready")
+	}
+	if err = GTemplateClient.ForkInstance(dsID, realmID, realmCfgID, port, GAdvertiseIP); err != nil {
+		// DelDSByID 统一释放口，勿在此重复 ReleasePort。
+		GDSInfoMgr.DelDSByID(dsID)
+		return nil, err
+	}
 	return
 }
 
-// watchDSProcess is the sole Waiter for the DS OS process.
-func watchDSProcess(ds *DSInfo) {
-	if ds.DsProcInfo == nil || ds.DsProcInfo.OSProcess == nil {
-		return
-	}
-	state, err := ds.DsProcInfo.OSProcess.Wait()
-	if err != nil {
-		logrus.WithError(err).WithField("dsID", ds.DSID).Warn("ds process wait error")
-	} else {
-		logrus.WithFields(logrus.Fields{"dsID": ds.DSID, "state": state}).Info("ds process exited")
-	}
-	ds = GDSInfoMgr.GetDSByID(ds.DSID)
-	if ds == nil {
-		return // already torn down (GAME_END / TCP disconnect / RemoveDS)
-	}
-	// Unexpected exit while still tracked: report DEAD so DSC releases capacity.
-	if GReportClient != nil {
-		reason := fmt.Sprintf("process exited before ready: %v", state)
-		if ds.DSState != DS_CreatIng {
-			reason = fmt.Sprintf("process exited: %v", state)
-		}
-		GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
-			DsID:       ds.DSID,
-			RealmID:    ds.RealmID,
-			EventType:  pb.DSEventType_DS_EVENT_DEAD,
-			FailReason: reason,
-		})
-	}
-	GDSInfoMgr.DelDSByID(ds.DSID)
-}
-
-// KillDS signals process/conn stop. Port release + Wait live in DelDSByID / watchDSProcess.
+// KillDS 发 StopDS 让实例优雅退出；并关连接。端口释放集中在 DelDSByID。
 func (ds *DSInfo) KillDS() (err error) {
 	if ds.DSConn != nil {
+		_ = ds.SendMsg(pb.DSA2DS_MsgID_StopDS, mustMarshalStopDS(ds.DSID))
 		ds.DSConn.Close()
-	}
-	if ds.DsProcInfo != nil {
-		err = ds.DsProcInfo.KillProc()
 	}
 	return
 }
@@ -181,9 +163,9 @@ func (dsMgr *DSInfoMgr) DelDSByID(dsID string) {
 		delete(dsMgr.DSConnMgr, ds.DSConn)
 	}
 	// Sole port release point; zero Port so a later path cannot double-release.
-	if ds.DsProcInfo != nil && ds.DsProcInfo.Port > 0 {
-		proc.GPortMgr.ReleasePort(ds.DsProcInfo.Port)
-		ds.DsProcInfo.Port = 0
+	if ds.Port > 0 {
+		proc.GPortMgr.ReleasePort(ds.Port)
+		ds.Port = 0
 	}
 }
 
@@ -199,7 +181,7 @@ func (dsMgr *DSInfoMgr) DelDSByConn(conn kissnet.Connection) {
 	delete(dsMgr.DSIDMgr, u.DSID)
 }
 
-// ShutdownAll 退出时杀掉全部 DS：先报 DEAD 再摘表再 Kill（Wait 仍由 watchDSProcess 独占）。
+// ShutdownAll 退出时杀掉全部 DS：先报 DEAD 再摘表再 Kill。
 // 可重复调用；第二次为空操作。
 func (dsMgr *DSInfoMgr) ShutdownAll() {
 	dsMgr.mutex.Lock()
@@ -219,10 +201,46 @@ func (dsMgr *DSInfoMgr) ShutdownAll() {
 				FailReason: "dsa shutdown",
 			})
 		}
-		// 先摘表，避免 Kill 触发的 OnDisconnect / Wait 再报一次 DEAD。
+		// 先摘表，避免 Kill 触发的 OnDisconnect 再报一次 DEAD。
 		dsMgr.DelDSByID(ds.DSID)
 		if err := ds.KillDS(); err != nil {
 			logrus.WithError(err).WithField("dsID", ds.DSID).Warn("shutdown KillDS")
 		}
 	}
+}
+
+// SweepStaleCreating 回收 fork 后始终未 CreateOK 的 DS（实例进程死/连不上且未报 ForkFailed）。
+// 必须在 EventLoop 上调用（与 dsCreateOK/OnDisconnect 串行，无竞态）。
+// 超时后 DelDSByID（释放 PortMgr 口）并上报 DEAD，DSC 侧 realm 走 fail。
+func (dsMgr *DSInfoMgr) SweepStaleCreating(timeoutSec int64) {
+	if timeoutSec <= 0 {
+		return
+	}
+	now := time.Now()
+	dsMgr.mutex.Lock()
+	list := make([]*DSInfo, 0)
+	for _, ds := range dsMgr.DSIDMgr {
+		if ds.DSState == DS_CreatIng && now.Sub(ds.CurrTime) > time.Duration(timeoutSec)*time.Second {
+			list = append(list, ds)
+		}
+	}
+	dsMgr.mutex.Unlock()
+
+	for _, ds := range list {
+		logrus.WithFields(logrus.Fields{"dsID": ds.DSID, "ageSec": now.Sub(ds.CurrTime).Seconds()}).Warn("ds creating timeout (no CreateOK), reclaiming")
+		if GReportClient != nil {
+			GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
+				DsID:       ds.DSID,
+				RealmID:    ds.RealmID,
+				EventType:  pb.DSEventType_DS_EVENT_DEAD,
+				FailReason: "dsa creating timeout (no CreateOK)",
+			})
+		}
+		dsMgr.DelDSByID(ds.DSID)
+	}
+}
+
+func mustMarshalStopDS(dsID string) []byte {
+	b, _ := proto.Marshal(&pb.DSA2DS_StopDSReq{DsID: dsID})
+	return b
 }

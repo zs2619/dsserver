@@ -10,6 +10,8 @@ dsa to ds id
 message DSA2DS_MsgID {
 	enum MsgID {
 		QueryDsStatus  = 0;
+		StopDS         = 1; //停止DS实例（实例口）
+		ForkInstance   = 10; //模板fork一个实例（模板口）
 	}
 }
 
@@ -17,6 +19,24 @@ message DSA2DS_MsgID {
 DSA2DS_MsgIDQueryDsStatus
 */
 message  QueryDSStatusReq{
+}
+
+/**
+DSA2DS_StopDSReq
+*/
+message DSA2DS_StopDSReq {
+	string dsID = 1;
+}
+
+/**
+DSA2DS_ForkInstanceReq
+*/
+message DSA2DS_ForkInstanceReq {
+	string dsID      = 1;
+	string realmID   = 2;
+	string realmCfgID = 3;
+	int32  port       = 4;
+	string advertiseIP = 5;
 }
 
 /*
@@ -27,15 +47,32 @@ message DS2DSA_MsgID {
 		DSUpdateState  = 0; //当前游戏状态
 		DSCreateOK     = 1; //DS进程启动成功
 		DSGameEnd      = 2; //游戏结束，可以回收进程
+		TemplateReady  = 10; //模板就绪（模板口）
+		ForkFailed     = 11; //模板fork失败（模板口）
 	}
 }
 
 /**
-DS2DSA_MsgID_CreateOK
+DS2DSA_CreateOK
 */
 message  DS2DSA_CreateOK{
 	string   dsID     =1; //DS id
 	string   realmID  =2;
+	string   dsAddr   =3; //玩家可达地址（status.hostIP:port）；空则回退 advertiseIP:port
+}
+
+/**
+DS2DSA_TemplateReady
+*/
+message DS2DSA_TemplateReady {
+}
+
+/**
+DS2DSA_ForkFailed
+*/
+message DS2DSA_ForkFailed {
+	string dsID  = 1;
+	string reason = 2;
 }
 
 /**

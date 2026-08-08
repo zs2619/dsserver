@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type TeamConfig struct {
@@ -23,10 +24,16 @@ type DscConfig struct {
 }
 
 type DsaConfig struct {
-	HeartbeatIntervalSec int64 `json:"heartbeatIntervalSec"`
+	HeartbeatIntervalSec  int64  `json:"heartbeatIntervalSec"`
+	Capacity              int32  `json:"capacity"`
+	TemplatePort          int    `json:"templatePort"` // DSA 监听模板连接的口（模板 fork 口）
+	TemplateReadyRequired bool   `json:"templateReadyRequired"`
+	GamePortMin           int    `json:"gamePortMin"`
+	GamePortMax           int    `json:"gamePortMax"`
 }
 
 type GameConfigType struct {
+	DSRuntime string      `json:"dsRuntime"` // process|container
 	DSPath    string      `json:"dsPath"`
 	DSArgv    string      `json:"dsArgv"`
 	DsWorkDir string      `json:"dsWorkDir"`
@@ -40,6 +47,9 @@ type GameConfigType struct {
 var GameConfig GameConfigType
 
 func applyDefaults(cfg *GameConfigType) {
+	if cfg.DSRuntime == "" {
+		cfg.DSRuntime = "process"
+	}
 	if cfg.Team.MatchTimeoutMs <= 0 {
 		cfg.Team.MatchTimeoutMs = 10000
 	}
@@ -64,6 +74,15 @@ func applyDefaults(cfg *GameConfigType) {
 	if cfg.Dsa.HeartbeatIntervalSec <= 0 {
 		cfg.Dsa.HeartbeatIntervalSec = 3
 	}
+	if cfg.Dsa.Capacity <= 0 {
+		cfg.Dsa.Capacity = 100
+	}
+	if cfg.Dsa.GamePortMin <= 0 {
+		cfg.Dsa.GamePortMin = 30000
+	}
+	if cfg.Dsa.GamePortMax <= 0 {
+		cfg.Dsa.GamePortMax = 60000
+	}
 }
 
 func getConfigRaw(config string) ([]byte, error) {
@@ -83,5 +102,31 @@ func LoadGameConfig(config string) (*GameConfigType, error) {
 		return nil, err
 	}
 	applyDefaults(&GameConfig)
+	applyEnvOverrides(&GameConfig)
 	return &GameConfig, nil
+}
+
+// applyEnvOverrides: env 覆盖配置（container 模式下由 Downward API 注入）。
+func applyEnvOverrides(cfg *GameConfigType) {
+	if v := os.Getenv("DS_DSA_RUNTIME"); v != "" {
+		cfg.DSRuntime = v
+	}
+	if v := os.Getenv("DSA_TEMPLATE_PORT"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.Dsa.TemplatePort = n
+		}
+	}
+	if v := os.Getenv("TEMPLATE_READY_REQUIRED"); v == "true" || v == "1" {
+		cfg.Dsa.TemplateReadyRequired = true
+	}
+	if v := os.Getenv("GAME_PORT_MIN"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.Dsa.GamePortMin = n
+		}
+	}
+	if v := os.Getenv("GAME_PORT_MAX"); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			cfg.Dsa.GamePortMax = n
+		}
+	}
 }

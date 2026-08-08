@@ -45,7 +45,26 @@
                 "DS_DSA_GRPC_PORT": "12000",
                 "DS_DSA_GRPC_ADDR": "127.0.0.1:12000",
                 "DS_DSC_GRPC_URI": "127.0.0.1:10000",
-                "DS_DSA_AgentID": "AgentID0"
+                "DS_DSA_AgentID": "AgentID0",
+                "DSA_TEMPLATE_PORT": "11001",
+                "TEMPLATE_READY_REQUIRED": "true",
+                "DS_ADVERTISE_IP": "127.0.0.1",
+                "DS_DSA_RUNTIME": "process"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "dstemplate",
+            "type": "go",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mode": "debug",
+            "program": "${workspaceFolder}/dstemplate/main.go",
+            "env": {
+                "DSA_TEMPLATE_ADDR": "127.0.0.1:11001",
+                "DSA_DS_ADDR": "127.0.0.1:11000",
+                "DS_ADVERTISE_IP": "127.0.0.1"
             },
             "args": [],
             "showLog": true

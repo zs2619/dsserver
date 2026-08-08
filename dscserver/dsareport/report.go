@@ -23,11 +23,15 @@ func (s *Server) RegisterAgent(ctx context.Context, req *pb.RegisterAgentReq) (*
 	if capacity <= 0 {
 		capacity = 100
 	}
-	if err := dsastore.RegisterAgent(ctx, req.AgentID, req.GrpcAddr, capacity); err != nil {
+	runtime := req.Runtime
+	if runtime == "" {
+		runtime = "process"
+	}
+	if err := dsastore.RegisterAgent(ctx, req.AgentID, req.GrpcAddr, capacity, runtime, req.TemplateReady); err != nil {
 		logrus.WithError(err).Error("RegisterAgent")
 		return &pb.RegisterAgentResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: err.Error()}}, nil
 	}
-	logrus.WithFields(logrus.Fields{"agentID": req.AgentID, "grpcAddr": req.GrpcAddr}).Info("RegisterAgent ok")
+	logrus.WithFields(logrus.Fields{"agentID": req.AgentID, "grpcAddr": req.GrpcAddr, "runtime": runtime, "templateReady": req.TemplateReady}).Info("RegisterAgent ok")
 	return &pb.RegisterAgentResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}}, nil
 }
 
@@ -35,7 +39,7 @@ func (s *Server) Heartbeat(ctx context.Context, req *pb.AgentHeartbeatReq) (*pb.
 	if req.AgentID == "" {
 		return &pb.AgentHeartbeatResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError}}, nil
 	}
-	if err := dsastore.HeartbeatAgent(ctx, req.AgentID, int64(req.DsCount)); err != nil {
+	if err := dsastore.HeartbeatAgent(ctx, req.AgentID, int64(req.DsCount), req.TemplateReady); err != nil {
 		return &pb.AgentHeartbeatResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: err.Error()}}, nil
 	}
 	return &pb.AgentHeartbeatResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}}, nil

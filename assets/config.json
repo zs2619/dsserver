@@ -1,4 +1,5 @@
 {
+	"dsRuntime": "process",
 	"dsPath": "/bin/echo",
 	"dsArgv": "-DSID=%s -Port=%d -realmCfgID=%s",
 	"dsWorkDir": "",
@@ -17,6 +18,11 @@
 		"agentHeartbeatTimeoutSec": 15
 	},
 	"dsa": {
-		"heartbeatIntervalSec": 3
+		"heartbeatIntervalSec": 3,
+		"capacity": 100,
+		"templatePort": 11001,
+		"templateReadyRequired": true,
+		"gamePortMin": 30000,
+		"gamePortMax": 60000
 	}
 }

@@ -1,0 +1,116 @@
+# DSA 热池 Deployment（模板示例：dsa-warm-0，口段 30000-30499）
+#
+# 由 deploy/gen-warm-deployments.sh 生成 N 份（dsa-warm-0..N-1），每份一段不重叠的游戏口。
+# 要点：
+#   - 普通 Pod 网络 + hostPort（仅游戏口）；管理口仅 containerPort（不占节点口）
+#   - DSA(sidecar) + 模板(dstemplate) 同 Pod；模板/实例经 127.0.0.1 连 DSA
+#   - Downward API 注入 status.hostIP → DS_ADVERTISE_IP（节点主网卡即公网，CreateOK 用）
+#   - Downward API 注入 status.podIP → DS_DSA_GRPC_ADDR（Register 用，集群内可达）
+#   - podAntiAffinity 把本 Deployment 的副本打散到不同节点（同节点多 Pod 段不重叠→不抢口）
+#   - 游戏口 hostPort 条目由脚本按本 Deployment 段生成（此处仅示意 2 条，实际 500 条）
+#
+# 安全组：节点放行游戏口段（N×500，如 30000-31499）。
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dsa-warm-0
+  labels:
+    app: dsa-warm
+    dsa-warm/ordinal: "0"
+spec:
+  replicas: 3                     # = 节点数；同 ordinal 副本靠 antiAffinity 散到不同节点
+  selector:
+    matchLabels:
+      app: dsa-warm
+      dsa-warm/ordinal: "0"
+  template:
+    metadata:
+      labels:
+        app: dsa-warm
+        dsa-warm/ordinal: "0"
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: dsa-warm
+                  dsa-warm/ordinal: "0"
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: dsa
+          image: ds-dsa-run:latest
+          env:
+            - name: DS_CONFIGPATH
+              value: /dsa
+            - name: DS_DSA_PORT
+              value: "11000"
+            - name: DSA_TEMPLATE_PORT
+              value: "11001"
+            - name: DS_DSA_GRPC_PORT
+              value: "12000"
+            - name: DS_DSC_GRPC_URI
+              value: dscserver:10000
+            # Downward API 须写在引用方之前：K8s 按声明顺序展开 $(VAR)
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DS_DSA_AgentID
+              value: "$(POD_NAME)"   # 每 Pod 唯一；多副本各自 Register 成独立 Agent
+            - name: DS_DSA_RUNTIME
+              value: container
+            - name: TEMPLATE_READY_REQUIRED
+              value: "true"
+            - name: GAME_PORT_MIN
+              value: "30000"
+            - name: GAME_PORT_MAX
+              value: "30499"
+            - name: DS_DSA_GRPC_ADDR
+              value: "$(POD_IP):12000"
+            - name: DS_ADVERTISE_IP
+              value: "$(HOST_IP)"
+          ports:
+            # 管理口：仅 containerPort，全局固定，不占节点口
+            - name: ds-tcp
+              containerPort: 11000
+            - name: ds-template
+              containerPort: 11001
+            - name: ds-grpc
+              containerPort: 12000
+
+        - name: dstemplate
+          image: ds-dstemplate-run:latest
+          env:
+            - name: DSA_TEMPLATE_ADDR
+              value: 127.0.0.1:11001
+            - name: DSA_DS_ADDR
+              value: 127.0.0.1:11000
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: DS_ADVERTISE_IP
+              value: "$(HOST_IP)"
+            - name: GAME_PORT_MIN
+              value: "30000"
+            - name: GAME_PORT_MAX
+              value: "30499"
+          ports:
+            # 游戏口：hostPort 预声明本 Deployment 段（脚本生成 500 条，此处示意 2 条）
+            - name: game-30000
+              containerPort: 30000
+              hostPort: 30000
+            - name: game-30001
+              containerPort: 30001
+              hostPort: 30001
+            # ... game-30002 .. game-30499 由脚本生成 ...

@@ -1,10 +1,13 @@
-# 业务服务：GS / DSC / DSA
+# 业务服务：GS / DSC / DSA / dstemplate
 # 依赖 docker-compose.infra.yaml（网络 ds-infra、Redis 集群、Mongo）。
 # 用法：
 #   make infra
+#   # 先打二进制到仓库根（与 Dockerfile_*.run 的 COPY 一致），再：
+#   go build -o game gameserver/main.go && go build -o dsc dscserver/main.go && go build -o dsa dsaserver/main.go && go build -o dstemplate dstemplate/main.go
 #   docker compose up -d --build
 #
 # RedisInit 要求 DS_REDISURI 为 host:port 列表（不要 redis:// 前缀）。
+# dstemplate 用 network_mode: service:dsaserver，与 DSA 共享网络（模拟 sidecar），游戏口听在同网卡。
 
 services:
   gameserver:
@@ -13,7 +16,7 @@ services:
       dockerfile: Dockerfile.run
     restart: always
     environment:
-      - DS_CONFIGPATH=/
+      - DS_CONFIGPATH=/game
       - DS_MONGOURI=mongodb://mongodb-server:27017
       - DS_MONGODBNAME=ds
       - DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
@@ -33,7 +36,7 @@ services:
       dockerfile: Dockerfile_DSC.run
     restart: always
     environment:
-      - DS_CONFIGPATH=/
+      - DS_CONFIGPATH=/dsc
       - DS_DSC_PORT=10000
       - DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
     ports:
@@ -47,19 +50,42 @@ services:
       dockerfile: Dockerfile_DSA.run
     restart: always
     environment:
-      - DS_CONFIGPATH=/
+      - DS_CONFIGPATH=/dsa
       - DS_DSA_PORT=11000
       - DS_DSA_GRPC_PORT=12000
       - DS_DSA_GRPC_ADDR=dsaserver:12000
       - DS_DSC_GRPC_URI=dscserver:10000
       - DS_DSA_AgentID=AgentID0
+      - DSA_TEMPLATE_PORT=11001
+      - DS_ADVERTISE_IP=dsaserver
+      - DS_DSA_RUNTIME=process
+      - TEMPLATE_READY_REQUIRED=true
+      - GAME_PORT_MIN=30000
+      - GAME_PORT_MAX=30100
     ports:
       - "11000:11000"
+      - "11001:11001"
       - "12000:12000"
+      # process 联调：游戏口（dstemplate 与 DSA 共网，听在本容器）
+      - "30000-30100:30000-30100"
     depends_on:
       - dscserver
     networks:
       - ds-infra
+
+  dstemplate:
+    build:
+      context: .
+      dockerfile: Dockerfile_DSTemplate.run
+    restart: always
+    # 与 DSA 共享网络命名空间（同机 sidecar 语义）；勿再挂 networks
+    network_mode: "service:dsaserver"
+    environment:
+      - DSA_TEMPLATE_ADDR=127.0.0.1:11001
+      - DSA_DS_ADDR=127.0.0.1:11000
+      - DS_ADVERTISE_IP=dsaserver
+    depends_on:
+      - dsaserver
 
 networks:
   ds-infra:

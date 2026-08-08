@@ -59,7 +59,7 @@ func (t *DSATestSuite) TestDSA() {
 
 	dsInfo := &DSInfo{
 		DSConn:         nil,
-		DsProcInfo:     nil,
+		Port:           0,
 		LastUpdateTime: time.Now(),
 		CurrTime:       time.Now(),
 		DSID:           dsID,

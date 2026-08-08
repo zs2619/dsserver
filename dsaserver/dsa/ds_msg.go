@@ -1,9 +1,12 @@
 package dsa
 
 import (
+	"dsservices/dsaserver/proc"
 	"dsservices/kissnet"
 	"dsservices/pb"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
@@ -35,9 +38,31 @@ func dsCreateOK(conn kissnet.Connection, msg []byte) error {
 		return nil
 	}
 	dsInfo.SetConnection(conn)
+	// RemoveDS 在实例尚未 CreateOK 时只置 PendingStop；CreateOK 到即不升级 ready，直接 Stop+Del（防孤儿）。
+	if dsInfo.PendingStop {
+		dsInfo.PendingStop = false
+		logrus.WithField("dsID", dsInfo.DSID).Info("DS CreateOK hit pendingStop, stopping")
+		GDSInfoMgr.DelDSByID(dsInfo.DSID)
+		_ = dsInfo.KillDS()
+		return nil
+	}
 	if dsInfo.DSState == DS_CreatIng {
 		dsInfo.DSState = DS_CreatOK
-		addr := fmt.Sprintf("%s:%d", dsInfo.DsProcInfo.Ip, dsInfo.DsProcInfo.Port)
+		// DS 内可能换口：CreateOK 报最终口。校正记账——释放推荐口，标记实际口。
+		addr := req.DsAddr
+		if actualPort := parsePort(addr); actualPort > 0 && actualPort != dsInfo.Port {
+			proc.GPortMgr.ReleasePort(dsInfo.Port)
+			if proc.GPortMgr.MarkUsed(actualPort) {
+				dsInfo.Port = actualPort
+			}
+		}
+		if addr == "" {
+			ip := GAdvertiseIP
+			if ip == "" {
+				ip = "127.0.0.1"
+			}
+			addr = fmt.Sprintf("%s:%d", ip, dsInfo.Port)
+		}
 		logrus.WithFields(logrus.Fields{"dsID": dsInfo.DSID, "dsAddr": addr}).Info("DS CreateOK")
 		if GReportClient != nil {
 			GReportClient.ReportDSEvent(&pb.ReportDSEventReq{
@@ -59,7 +84,7 @@ func dsGameEnd(dsInfo *DSInfo, msg []byte) error {
 			EventType: pb.DSEventType_DS_EVENT_GAME_END,
 		})
 	}
-	// Untrack first so watchDSProcess Wait does not report DEAD after intentional end.
+	// Untrack first so OnDisconnect does not report DEAD after intentional end.
 	GDSInfoMgr.DelDSByID(dsInfo.DSID)
 	_ = dsInfo.KillDS()
 	return nil
@@ -74,4 +99,17 @@ func dsUpdateState(dsInfo *DSInfo, msg []byte) error {
 		})
 	}
 	return nil
+}
+
+// parsePort 从 "ip:port" 中解析端口；失败返回 0。
+func parsePort(addr string) int {
+	idx := strings.LastIndex(addr, ":")
+	if idx < 0 {
+		return 0
+	}
+	n, err := strconv.Atoi(addr[idx+1:])
+	if err != nil {
+		return 0
+	}
+	return n
 }

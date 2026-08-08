@@ -8,14 +8,17 @@ WORKDIR $GOPATH/src/$appname
 RUN go build -o dsc  dscserver/main.go
 RUN go build -o dsa  dsaserver/main.go
 RUN go build -o game gameserver/main.go
+RUN go build -o dstemplate dstemplate/main.go
 
 CMD tar -zcf - Dockerfile.run  \
 	ca-certificates.crt \
 	Dockerfile_DSA.run \
 	Dockerfile_DSC.run \
+	Dockerfile_DSTemplate.run \
 	game  \
 	dsc  \
 	dsa  \
+	dstemplate  \
 	assets \
 	preStop.sh \
 	postStart.sh

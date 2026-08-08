@@ -48,21 +48,17 @@ func (s *AgentServer) CreateDS(ctx context.Context, req *pb.DsaCreateDSReq) (*pb
 		return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: "dsID/realmCfgID required"}}, nil
 	}
 	if existing := GDSInfoMgr.GetDSByID(req.DsID); existing != nil {
-		addr := ""
-		if existing.DsProcInfo != nil {
-			addr = fmt.Sprintf("%s:%d", existing.DsProcInfo.Ip, existing.DsProcInfo.Port)
-		}
-		return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}, DsAddr: addr}, nil
+		// 已存在：Fork 后无真实地址，返回空 dsAddr（真地址等 CreateOK 上报）。
+		return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}, DsAddr: ""}, nil
 	}
 	dsInfo, err := NewDS(req.DsID, req.RealmID, req.RealmCfgID)
 	if err != nil {
 		logrus.WithError(err).WithField("dsID", req.DsID).Error("NewDS")
 		return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_ReqParamError, Errmsg: err.Error()}}, nil
 	}
-	// 仅分配端口并拉起进程；realm ready 等 DS TCP CreateOK 后再 ReportDSEvent。
-	addr := fmt.Sprintf("%s:%d", dsInfo.DsProcInfo.Ip, dsInfo.DsProcInfo.Port)
-	logrus.WithFields(logrus.Fields{"dsID": req.DsID, "realmID": req.RealmID, "dsAddr": addr}).Info("CreateDS started, waiting CreateOK")
-	return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}, DsAddr: addr}, nil
+	// Fork 后无 OSProcess，DsAddr 由实例 CreateOK 上报；此处返回空占位。
+	logrus.WithFields(logrus.Fields{"dsID": req.DsID, "realmID": req.RealmID, "port": dsInfo.Port}).Info("CreateDS forked, waiting CreateOK")
+	return &pb.DsaCreateDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}, DsAddr: ""}, nil
 }
 
 func (s *AgentServer) RemoveDS(ctx context.Context, req *pb.DsaRemoveDSReq) (*pb.DsaRemoveDSResp, error) {
@@ -71,8 +67,13 @@ func (s *AgentServer) RemoveDS(ctx context.Context, req *pb.DsaRemoveDSReq) (*pb
 	}
 	ds := GDSInfoMgr.GetDSByID(req.DsID)
 	if ds != nil {
-		GDSInfoMgr.DelDSByID(req.DsID)
-		_ = ds.KillDS()
+		if ds.DSState == DS_CreatIng {
+			// 实例尚未 CreateOK：置 PendingStop，等 CreateOK 到再 Stop+Del（避免孤儿实例）。
+			ds.PendingStop = true
+		} else {
+			GDSInfoMgr.DelDSByID(req.DsID)
+			_ = ds.KillDS()
+		}
 	}
 	return &pb.DsaRemoveDSResp{Header: &pb.RpcHeader{Ret: pb.RpcHeader_OK}}, nil
 }

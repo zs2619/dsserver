@@ -7,6 +7,7 @@ DOCKER_BUILD_IMAGE_TAG=ds-build
 DOCKER_RUN_GAME_IMAGE_TAG=ds-game-run
 DOCKER_RUN_DSC_IMAGE_TAG=ds-dsc-run
 DOCKER_RUN_DSA_IMAGE_TAG=ds-dsa-run
+DOCKER_RUN_DSTEMPLATE_IMAGE_TAG=ds-dstemplate-run
 
 K8S_WEB_URL=""
 
@@ -47,6 +48,10 @@ buildimage:
 	docker run --rm $(DOCKER_BUILD_IMAGE_TAG) \
 		| docker build -t $(DOCKER_RUN_DSA_IMAGE_TAG):${Version}_${Branch}_${GitCount} -f Dockerfile_DSA.run -
 	docker tag $(DOCKER_RUN_DSA_IMAGE_TAG):${Version}_${Branch}_${GitCount} $(DOCKER_RUN_DSA_IMAGE_TAG):latest
+
+	docker run --rm $(DOCKER_BUILD_IMAGE_TAG) \
+		| docker build -t $(DOCKER_RUN_DSTEMPLATE_IMAGE_TAG):${Version}_${Branch}_${GitCount} -f Dockerfile_DSTemplate.run -
+	docker tag $(DOCKER_RUN_DSTEMPLATE_IMAGE_TAG):${Version}_${Branch}_${GitCount} $(DOCKER_RUN_DSTEMPLATE_IMAGE_TAG):latest
 
 
 push_webserver:
@@ -90,8 +95,8 @@ vet :
 
 deployimage:
 	make buildimage
-	docker-compose down
-	docker-compose up -d
+	docker compose down
+	docker compose up -d --build
 pb:
 	cd tools &&sed -i "s/\r//" gen_proto.sh &&chmod +x gen_proto.sh && ./gen_proto.sh
 	

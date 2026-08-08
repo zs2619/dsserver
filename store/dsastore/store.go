@@ -56,14 +56,15 @@ return {'ok', ''}
 
 	// reserve: KEYS agentsZSet → {agentID, grpcAddr} or empty
 	// ARGV now, hbTimeoutSec
+	// 跳过 templateReady != "1" 的 Agent（模板未就绪不可 fork）。
 	reserveOptimalAgentScript = redis.NewScript(`
 local now, hbTimeout = tonumber(ARGV[1]), tonumber(ARGV[2])
 local members = redis.call('zrange', KEYS[1], 0, 30)
 for _, agentID in ipairs(members) do
   local akey = '{dsc}agent:' .. agentID
-  local f = redis.call('hmget', akey, 'state', 'heartbeat', 'capacity', 'dsCount', 'grpcAddr')
-  local state, hb, cap, cnt, grpc = f[1], tonumber(f[2] or '0'), tonumber(f[3] or '0'), tonumber(f[4] or '0'), f[5]
-  if state == 'online' and grpc and grpc ~= '' then
+  local f = redis.call('hmget', akey, 'state', 'heartbeat', 'capacity', 'dsCount', 'grpcAddr', 'templateReady')
+  local state, hb, cap, cnt, grpc, tready = f[1], tonumber(f[2] or '0'), tonumber(f[3] or '0'), tonumber(f[4] or '0'), f[5], f[6]
+  if state == 'online' and grpc and grpc ~= '' and tready == '1' then
     if (now - hb) <= hbTimeout then
       local newCnt = redis.call('hincrby', akey, 'dsCount', 1)
       if cap > 0 and newCnt > cap then
@@ -80,12 +81,14 @@ return {}
 )
 
 type AgentInfo struct {
-	AgentID   string
-	GrpcAddr  string
-	DSCount   int64
-	Capacity  int64
-	Heartbeat int64
-	State     string
+	AgentID       string
+	GrpcAddr      string
+	DSCount       int64
+	Capacity      int64
+	Heartbeat     int64
+	State         string
+	Runtime       string
+	TemplateReady bool
 }
 
 type DSInfo struct {
@@ -110,7 +113,7 @@ type RealmInfo struct {
 	UserIDList []string
 }
 
-func RegisterAgent(ctx context.Context, agentID, grpcAddr string, capacity int64) error {
+func RegisterAgent(ctx context.Context, agentID, grpcAddr string, capacity int64, runtime string, templateReady bool) error {
 	now := time.Now().Unix()
 	key := AgentKey(agentID)
 	// DSA 重连时按仍占槽的 DS 重算 dsCount，避免一律清零导致容量账错。
@@ -123,21 +126,27 @@ func RegisterAgent(ctx context.Context, agentID, grpcAddr string, capacity int64
 			}
 		}
 	}
+	treadyStr := "0"
+	if templateReady {
+		treadyStr = "1"
+	}
 	pipe := store.RedisClient.Pipeline()
 	pipe.HSet(ctx, key, map[string]interface{}{
-		"agentID":   agentID,
-		"grpcAddr":  grpcAddr,
-		"capacity":  capacity,
-		"dsCount":   dsCount,
-		"heartbeat": now,
-		"state":     AgentStateOnline,
+		"agentID":       agentID,
+		"grpcAddr":      grpcAddr,
+		"capacity":      capacity,
+		"dsCount":       dsCount,
+		"heartbeat":     now,
+		"state":         AgentStateOnline,
+		"runtime":       runtime,
+		"templateReady": treadyStr,
 	})
 	pipe.ZAdd(ctx, agentsZSetKey, redis.Z{Score: float64(dsCount), Member: agentID})
 	_, err := pipe.Exec(ctx)
 	return err
 }
 
-func HeartbeatAgent(ctx context.Context, agentID string, dsCount int64) error {
+func HeartbeatAgent(ctx context.Context, agentID string, dsCount int64, templateReady bool) error {
 	now := time.Now().Unix()
 	key := AgentKey(agentID)
 	exists, err := store.RedisClient.Exists(ctx, key).Result()
@@ -156,8 +165,12 @@ func HeartbeatAgent(ctx context.Context, agentID string, dsCount int64) error {
 	if cur < 0 {
 		cur = 0
 	}
+	treadyStr := "0"
+	if templateReady {
+		treadyStr = "1"
+	}
 	pipe := store.RedisClient.Pipeline()
-	pipe.HSet(ctx, key, "heartbeat", now, "state", AgentStateOnline)
+	pipe.HSet(ctx, key, "heartbeat", now, "state", AgentStateOnline, "templateReady", treadyStr)
 	pipe.ZAdd(ctx, agentsZSetKey, redis.Z{Score: float64(cur), Member: agentID})
 	_, err = pipe.Exec(ctx)
 	return err
@@ -692,12 +705,14 @@ func mapToAgent(m map[string]string) *AgentInfo {
 	capacity, _ := strconv.ParseInt(m["capacity"], 10, 64)
 	hb, _ := strconv.ParseInt(m["heartbeat"], 10, 64)
 	return &AgentInfo{
-		AgentID:   m["agentID"],
-		GrpcAddr:  m["grpcAddr"],
-		DSCount:   dsCount,
-		Capacity:  capacity,
-		Heartbeat: hb,
-		State:     m["state"],
+		AgentID:       m["agentID"],
+		GrpcAddr:      m["grpcAddr"],
+		DSCount:       dsCount,
+		Capacity:      capacity,
+		Heartbeat:     hb,
+		State:         m["state"],
+		Runtime:       m["runtime"],
+		TemplateReady: m["templateReady"] == "1",
 	}
 }
 

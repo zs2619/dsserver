@@ -1,0 +1,9 @@
+FROM debian:bullseye-20230227-slim
+
+ADD ca-certificates.crt /etc/ssl/certs/
+RUN mkdir /dstemplate
+COPY dstemplate /dstemplate/
+COPY assets /dstemplate/assets
+
+WORKDIR /dstemplate
+ENTRYPOINT exec ./dstemplate

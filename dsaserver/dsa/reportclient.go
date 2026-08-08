@@ -5,6 +5,7 @@ import (
 	"dsservices/config"
 	"dsservices/pb"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -15,14 +16,16 @@ import (
 var GReportClient *ReportClient
 
 type ReportClient struct {
-	agentID   string
-	grpcAddr  string // this DSA advertise addr for DSC callbacks
-	dscURI    string
-	conn      *grpc.ClientConn
-	client    pb.RpcDsaReportClient
-	quit      chan struct{}
-	closeOnce sync.Once
-	capacity  int32
+	agentID      string
+	grpcAddr     string // this DSA advertise addr for DSC callbacks
+	dscURI       string
+	conn         *grpc.ClientConn
+	client       pb.RpcDsaReportClient
+	quit         chan struct{}
+	closeOnce    sync.Once
+	capacity     int32
+	runtime      string
+	templateReady int32 // atomic bool
 }
 
 func NewReportClient(agentID, dscURI, advertiseAddr string) (*ReportClient, error) {
@@ -41,20 +44,36 @@ func NewReportClient(agentID, dscURI, advertiseAddr string) (*ReportClient, erro
 		dscURI:   dscURI,
 		conn:     conn,
 		client:   pb.NewRpcDsaReportClient(conn),
-		capacity: 100,
+		capacity: config.GameConfig.Dsa.Capacity,
+		runtime:  config.GameConfig.DSRuntime,
 		quit:     make(chan struct{}),
 	}
 	GReportClient = rc
 	return rc, nil
 }
 
+// SetTemplateReady 更新模板就绪状态（模板连接建立/断开时调用）。
+func (rc *ReportClient) SetTemplateReady(ready bool) {
+	if ready {
+		atomic.StoreInt32(&rc.templateReady, 1)
+	} else {
+		atomic.StoreInt32(&rc.templateReady, 0)
+	}
+}
+
+func (rc *ReportClient) isTemplateReady() bool {
+	return atomic.LoadInt32(&rc.templateReady) != 0
+}
+
 func (rc *ReportClient) Register() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	resp, err := rc.client.RegisterAgent(ctx, &pb.RegisterAgentReq{
-		AgentID:  rc.agentID,
-		GrpcAddr: rc.grpcAddr,
-		Capacity: rc.capacity,
+		AgentID:       rc.agentID,
+		GrpcAddr:      rc.grpcAddr,
+		Capacity:      rc.capacity,
+		Runtime:       rc.runtime,
+		TemplateReady: rc.isTemplateReady(),
 	})
 	if err != nil {
 		return err
@@ -81,8 +100,9 @@ func (rc *ReportClient) RunHeartbeat() {
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		_, err := rc.client.Heartbeat(ctx, &pb.AgentHeartbeatReq{
-			AgentID: rc.agentID,
-			DsCount: int32(GDSInfoMgr.Count()),
+			AgentID:       rc.agentID,
+			DsCount:       int32(GDSInfoMgr.Count()),
+			TemplateReady: rc.isTemplateReady(),
 		})
 		cancel()
 		if err != nil {

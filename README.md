@@ -4,14 +4,14 @@
 
 ## 功能概览
 
-1. 管理 DS Agent 与 DS 进程生命周期  
+1. 管理 DS Agent 与 DS 实例生命周期（模板 + Fork 多实例）  
 2. 实时分配 DS（匹配 → Realm → CreateDS）  
-3. 快速拉起 UE DS 实例  
+3. 快速 Fork UE DS 实例（热 Pod 模板常驻，按局 fork）
 
 当前仓库已实现的核心链路：
 
 ```text
-Client --TCP(kissnet)--> GameServer --gRPC--> DSC --gRPC--> DSA --进程--> DS
+Client --TCP(kissnet)--> GameServer --gRPC--> DSC --gRPC--> DSA --模板Fork--> DS
                               ^                    ^
                               |   Redis 集群(控制面) |
                               +------ Mongo(用户数据，GS)
@@ -21,7 +21,8 @@ Client --TCP(kissnet)--> GameServer --gRPC--> DSC --gRPC--> DSA --进程--> DS
 |------|------|------|
 | GameServer (GS) | `gameserver/` | 玩家连接、组队匹配、订阅 Realm ready/fail |
 | DSC | `dscserver/` | Agent 注册/心跳、CreateRealm、分配 DS |
-| DSA | `dsaserver/` | 本机拉起 DS、上报 CreateOK/DEAD 等事件 |
+| DSA | `dsaserver/` | 端口分配、请求模板 Fork 实例、上报 CreateOK/DEAD 等事件 |
+| dstemplate | `dstemplate/` | 模拟 UE 模板 DS：连 DSA 发 TemplateReady、收 ForkInstance 后 fork 实例并报 CreateOK |
 
 ## 技术栈
 
@@ -60,14 +61,26 @@ DS_MONGODBNAME=ds
 
 ## 业务服务 Compose
 
-`docker-compose.yaml`：GS / DSC / DSA，**加入外部网络 `ds-infra`**，与 infra 互通。
+`docker-compose.yaml`：GS / DSC / DSA / dstemplate，**加入外部网络 `ds-infra`**，与 infra 互通。
 
 ```bash
 make infra                         # 必须先起依赖
+# Dockerfile_*.run 从仓库根 COPY 二进制，需先本地编译：
+go build -o game gameserver/main.go
+go build -o dsc dscserver/main.go
+go build -o dsa dsaserver/main.go
+go build -o dstemplate dstemplate/main.go
 docker compose up -d --build       # 再起业务
 ```
 
-启动顺序：先 `infra`（创建网络与数据服务），再业务 compose。
+启动顺序：先 `infra`，再业务 compose。`dstemplate` 使用 `network_mode: service:dsaserver`（与 DSA 共网，模拟 sidecar）；DSA 等模板 `TemplateReady` 后再向 DSC 注册。游戏口段默认 `30000-30100`（已映射到宿主机）。
+
+## 部署模型（模板 + Fork）
+
+- **process**：DSA + dstemplate 同机（compose 共网）；CreateOK 报 `dsIP:口`，本机/同网玩家可达。
+- **container**：热池 Pod（DSA sidecar + dstemplate 同 Pod），普通 Pod 网络 + `hostPort`（仅游戏口）；N 个 Deployment 各占一段不重叠游戏口，`podAntiAffinity` 把同段副本散到不同节点；CreateOK 报 `status.hostIP:口`，公网玩家直连，无网关。
+  - 部署 YAML 与分段脚本：`deploy/dsa-warm-template.yaml`、`deploy/gen-warm-deployments.sh`。
+  - 关键 env：`GAME_PORT_MIN/MAX`（本 Deployment 段）、`DS_ADVERTISE_IP`（Downward API `status.hostIP`）、`DS_DSA_GRPC_ADDR`（Downward API `status.podIP`）、`DS_DSA_AgentID=$(POD_NAME)`（每 Pod 唯一）。
 
 ## 开发环境（Dev Container）
 
@@ -75,7 +88,7 @@ docker compose up -d --build       # 再起业务
 
 - 合并加载 `docker-compose.infra.yaml` + `docker-compose.extend.yml`  
 - 开发容器 `dsservices` 与 Redis/Mongo 同处 `ds-infra`  
-- 调试环境变量见 `.vscode/launch.json`  
+- 调试环境变量见 `.vscode/launch.json`（含 `dsa server` / `dstemplate`）  
 
 步骤：
 
@@ -83,7 +96,7 @@ docker compose up -d --build       # 再起业务
 2. 打开本仓库根目录  
 3. **Reopen in Container**  
 
-容器内已注入 `DS_REDISURI` / `DS_MONGOURI` 等，可直接 F5 调试 GS / DSC / DSA。
+容器内已注入 `DS_REDISURI` / `DS_MONGOURI` 等；F5 调试 DSA 时需另起 `dstemplate`（或先起 compose 里的模板）。
 
 ## 测试
 
@@ -107,12 +120,20 @@ make unit_test
 | `make vet` | `go vet` |
 | `make pb` | 重新生成 protobuf |
 | `make build` | 编译并打出二进制 tar.gz |
-| `make buildimage` | 构建 GS/DSC/DSA 运行镜像 |
+| `make buildimage` | 构建 GS/DSC/DSA/dstemplate 运行镜像 |
 
 ## 配置
 
-- 游戏/超时等：`assets/config.json`（由 `DS_CONFIGPATH` 指定目录前缀）  
-- 关键变量示例：`DS_GS_PORT`、`DS_DSC_PORT`、`DS_DSA_*`、`DS_DSC_GRPC_URI`、`DS_DSA_AgentID`  
+- 游戏/超时等：`assets/config.json`（由 `DS_CONFIGPATH` 指定目录前缀；compose 内分别为 `/game` `/dsc` `/dsa`）  
+- 环境变量示例：`DS_GS_PORT`、`DS_DSC_PORT`、`DS_DSA_*`、`DS_DSC_GRPC_URI`、`DS_DSA_AgentID`  
+- 模板/Fork 相关：`DS_DSA_RUNTIME`（process\|container）、`DSA_TEMPLATE_PORT`、`TEMPLATE_READY_REQUIRED`、`GAME_PORT_MIN`/`GAME_PORT_MAX`、`DS_ADVERTISE_IP`（默认 `status.hostIP`）
+
+## 已知限制（联调前）
+
+- compose `--build` 依赖仓库根已有 `game`/`dsc`/`dsa`/`dstemplate` 二进制（与既有 DSA/DSC 相同）；或用 `make buildimage`。
+- 节点主网卡非公网时 `status.hostIP` 内网不可达，需另注入公网 IP（v1 不做）。
+- 安全组须放行本 Deployment 游戏口段；hostPort 条目多（约 500/段），需验证 iptables 规模。
+- dstemplate 为协议 mock，不做 UE 级 bind 换口；真 UE DS 读 `GAME_PORT_MIN/MAX` 自行换口。
 
 ## 许可证
 

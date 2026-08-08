@@ -51,6 +51,8 @@ message RegisterAgentReq {
 	string agentID  = 1;
 	string grpcAddr = 2;
 	int32  capacity = 3;
+	string runtime  = 4;       // process|container
+	bool   templateReady = 5;
 }
 
 message RegisterAgentResp {
@@ -60,6 +62,7 @@ message RegisterAgentResp {
 message AgentHeartbeatReq {
 	string agentID = 1;
 	int32  dsCount = 2;
+	bool   templateReady = 3;  //模板断开→false→不再被选
 }
 
 message AgentHeartbeatResp {
