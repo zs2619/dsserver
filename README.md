@@ -11,7 +11,7 @@
 当前仓库已实现的核心链路：
 
 ```text
-Client --TCP(kissnet)--> GameServer --gRPC--> DSC --gRPC--> DSA --模板Fork--> DS
+Client --TCP(kissnet-go)--> GameServer --gRPC--> DSC --gRPC--> DSA --模板Fork--> DS
                               ^                    ^
                               |   Redis 集群(控制面) |
                               +------ Mongo(用户数据，GS)
@@ -22,7 +22,7 @@ Client --TCP(kissnet)--> GameServer --gRPC--> DSC --gRPC--> DSA --模板Fork--> 
 | GameServer (GS) | `gameserver/` | 玩家连接、组队匹配、订阅 Realm ready/fail |
 | DSC | `dscserver/` | Agent 注册/心跳、CreateRealm、分配 DS |
 | DSA | `dsaserver/` | 端口分配、请求模板 Fork 实例、上报 CreateOK/DEAD 等事件 |
-| dstemplate | `dstemplate/` | 模拟 UE 模板 DS：连 DSA 发 TemplateReady、收 ForkInstance 后 fork 实例并报 CreateOK |
+| dstemplate | `dstemplate/` | 模拟 UE 模板 DS：连 DSA 发 TemplateReady、收 ForkInstance 后 fork 实例并报 CreateOK；生产/联调可用 `ffagame/server` 的 `cmd/game`（`DS_MODE=dsa`）替换该二进制 |
 
 ## 技术栈
 

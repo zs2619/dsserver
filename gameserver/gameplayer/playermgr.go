@@ -2,7 +2,7 @@ package gameplayer
 
 import (
 	"dsservices/gameserver/team"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 	"fmt"
 	"sync"

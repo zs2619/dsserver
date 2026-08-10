@@ -4,7 +4,7 @@ import (
 	"dsservices/config"
 	"dsservices/dsaserver/dsa"
 	"dsservices/dsaserver/proc"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"os"
 	"os/signal"
 	"strconv"

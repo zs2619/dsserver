@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"dsservices/common"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 
 	"github.com/sirupsen/logrus"

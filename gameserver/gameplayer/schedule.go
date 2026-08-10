@@ -1,6 +1,6 @@
 package gameplayer
 
-import "dsservices/kissnet"
+import "github.com/zs2619/kissnet-go"
 
 // netEvent 主事件循环；player 状态变更须投递到此串行执行。
 var netEvent *kissnet.NetEvent

@@ -6,7 +6,7 @@ import (
 	"dsservices/gameserver/gameplayer"
 	"dsservices/gameserver/realm"
 	"dsservices/gameserver/team"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/store"
 	"fmt"
 	"os"

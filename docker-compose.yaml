@@ -6,6 +6,10 @@
 #   go build -o game gameserver/main.go && go build -o dsc dscserver/main.go && go build -o dsa dsaserver/main.go && go build -o dstemplate dstemplate/main.go
 #   docker compose up -d --build
 #
+# FFA 业务 DS：用 ffagame/server 的 cmd/game 替代 mock dstemplate：
+#   cd ../ffagame/server && go build -o ../../dsserver/dstemplate ./cmd/game
+#   （compose 里 dstemplate 服务已加 DS_MODE=dsa）
+#
 # RedisInit 要求 DS_REDISURI 为 host:port 列表（不要 redis:// 前缀）。
 # dstemplate 用 network_mode: service:dsaserver，与 DSA 共享网络（模拟 sidecar），游戏口听在同网卡。
 
@@ -79,11 +83,14 @@ services:
       dockerfile: Dockerfile_DSTemplate.run
     restart: always
     # 与 DSA 共享网络命名空间（同机 sidecar 语义）；勿再挂 networks
+    # 可将二进制换成 ffagame/server 的 game（DS_MODE=dsa）
     network_mode: "service:dsaserver"
     environment:
+      - DS_MODE=dsa
       - DSA_TEMPLATE_ADDR=127.0.0.1:11001
       - DSA_DS_ADDR=127.0.0.1:11000
       - DS_ADVERTISE_IP=dsaserver
+      - DS_REDISURI=redis-node-1:7001,redis-node-2:7002,redis-node-3:7003,redis-node-4:7004,redis-node-5:7005,redis-node-6:7006
     depends_on:
       - dsaserver
 

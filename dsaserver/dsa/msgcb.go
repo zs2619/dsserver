@@ -1,7 +1,7 @@
 package dsa
 
 import (
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 	"encoding/binary"
 	"fmt"

@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 	"encoding/binary"
 	"fmt"

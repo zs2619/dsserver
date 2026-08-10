@@ -2,7 +2,7 @@ package dsa
 
 import (
 	"dsservices/dsaserver/proc"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 	"fmt"
 	"strconv"

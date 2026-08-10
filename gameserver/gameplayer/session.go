@@ -6,7 +6,7 @@ import (
 	"dsservices/gameserver/playermodel"
 	"dsservices/gameserver/realm"
 	"dsservices/gameserver/user"
-	"dsservices/kissnet"
+	"github.com/zs2619/kissnet-go"
 	"dsservices/pb"
 
 	"go.mongodb.org/mongo-driver/mongo"
